@@ -84,16 +84,16 @@ E.g. \"Device\", \"Node\", \"Port\", \"Client\", ..."
       object
     (pw-lib-get-object (pw-lib-object-value object "node.id"))))
 
-(defun pw-lib--node-parameters (object-or-id)
+(defun pw-lib--node-parameters (object-or-id &optional refresh)
   (let* ((object (if (numberp object-or-id)
                      (pw-lib-get-object object-or-id)
                    object-or-id))
          (node (pw-lib--node object))
          (parameters (pw-lib-object-value node 'parameters)))
-    (unless parameters
+    (when (or refresh (not parameters))
       (setq parameters (pw-access-properties pw-lib--accessor (pw-lib-object-id node)))
       (setcdr node (cons (cons 'parameters parameters)
-                         (cdr node))))
+                         (assq-delete-all 'parameters (cdr node)))))
     parameters))
 
 (defun pw-lib-default-nodes ()
@@ -152,9 +152,9 @@ version, call `pw-lib-refresh' first."
 (defun pw-lib--volume-float (volume)
   (/ (float volume) 100))
 
-(defun pw-lib--object-parameters (object)
+(defun pw-lib--object-parameters (object &optional refresh)
   (let* ((node-p (equal (pw-lib-object-type object) "Node"))
-         (parameters (pw-lib--node-parameters object))
+         (parameters (pw-lib--node-parameters object refresh))
          (monitor-p (unless node-p
                       (equal (pw-lib-object-value object "port.monitor") "true")))
          (node-id (pw-lib-object-id (pw-lib--node object)))
@@ -162,37 +162,37 @@ version, call `pw-lib-refresh' first."
                     (pw-lib-object-value object "port.id"))))
     (list node-p parameters monitor-p node-id port-id)))
 
-(defun pw-lib-muted-p (object)
+(defun pw-lib-muted-p (object &optional refresh)
   "Return whether the given PipeWire object is muted.
 Applicable only to Nodes and Ports.
-Note that PipeWire data is cached, if you need its up-to-date
-version, call `pw-lib-refresh' first."
+If REFRESH is non-nil then retrive fresh information from PipeWire
+rather than using cached data to obtain the result."
   (cl-destructuring-bind (node-p parameters monitor-p node-id port-id)
-      (pw-lib--object-parameters object)
+      (pw-lib--object-parameters object refresh)
     (eq (cdr (assoc (if monitor-p "monitorMute" "mute") parameters)) 'true)))
 
-(defun pw-lib-toggle-mute (object)
+(defun pw-lib-toggle-mute (object &optional refresh)
   "Toggle mute status of the given PipeWire OBJECT.
 Return the new boolean mute status of OBJECT.
 Applicable only to Nodes and Ports.
-Note that PipeWire data is cached, if you need its up-to-date
-version, call `pw-lib-refresh' first."
+If REFRESH is non-nil then retrive fresh information from PipeWire
+rather than using cached data to obtain the result."
   (cl-destructuring-bind (node-p parameters monitor-p node-id port-id)
-      (pw-lib--object-parameters object)
+      (pw-lib--object-parameters object refresh)
     (let* ((mute (not (pw-lib-muted-p object)))
            (property (if monitor-p "monitorMute" "mute"))
            (value (if mute "true" "false")))
       (pw-access-set-properties pw-lib--accessor node-id (list (cons property value)))
       mute)))
 
-(defun pw-lib-volume (object)
+(defun pw-lib-volume (object &optional refresh)
   "Return volume of the given PipeWire object.
 The returned value is an integer in the range 0-100.
 Applicable only to Nodes and Ports.
-Note that PipeWire data is cached, if you need its up-to-date
-version, call `pw-lib-refresh' first."
+If REFRESH is non-nil then retrive fresh information from PipeWire
+rather than using cached data to obtain the result."
   (cl-destructuring-bind (node-p parameters monitor-p node-id port-id)
-      (pw-lib--object-parameters object)
+      (pw-lib--object-parameters object refresh)
     (pw-lib--volume-%
      (if node-p
          (cdr (assoc "volume" parameters))
