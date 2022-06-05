@@ -1,0 +1,108 @@
+#+TITLE: pipewire-0
+
+pipewire-0 is an [[https://www.gnu.org/software/emacs][Emacs]] interface to [[https://pipewire.org][PipeWire]].  It provides a library
+to access some PipeWire functionality and a simple user interface to
+handle audio devices.  It allows displaying PipeWire devices and
+clients, changing volumes and muting and unmuting of PipeWire sinks
+and sources and setting default sinks and sources.
+
+It is an experimental initial version that may be quite buggy.  It
+works for me but may not work in other environments.  Feel free to use
+it, fix it, fork it.  [[*Contact][Contact me]] if you want to discuss anything.
+
+* Usage
+
+** Installation
+
+pipewire-0 currently requires presence of PipeWire command line tools,
+namely [[https://docs.pipewire.org/page_man_pw_cli_1.html][pw-cli]] and [[https://docs.pipewire.org/page_man_pw_metadata_1.html][pw-metadata]].
+
+To install pipewire-0, put the *.el files to a site-lisp directory and
+add the following line to your Emacs configuration:
+
+   #+begin_src elisp
+(require ’pw-ui)
+   #+end_src
+
+Or if you use [[https://github.com/radian-software/straight.el][straight.el]], you can install pipewire-0 as follows:
+
+   #+begin_src elisp
+(straight-use-package
+ '(pipewire-0 :type git
+              :repo "https://git.zamazal.org/pdm/pipewire-0"
+              :local-repo "pipewire-0"))
+   #+end_src
+
+** User interface
+
+=M-x pipewire= enters a buffer with PipeWire objects:
+
+#+ATTR_HTML: :alt Emacs PipeWire buffer
+[[./screenshot.jpg]]
+
+Use =C-h m= to display basic help.
+
+Most of the interactive functions can be used anywhere:
+
+- =pipewire-increase-volume=
+- =pipewire-decrase-volume=
+- =pipewire-set-volume=
+- =pipewire-toggle-muted=
+- =pipewire-set-default=
+
+They can be bound to multimedia keys:
+
+   #+begin_src elisp
+(global-set-key (kbd "<XF86AudioMute>") 'pipewire-toggle-muted)
+(global-set-key (kbd "<XF86AudioLowerVolume>") 'pipewire-decrease-volume)
+(global-set-key (kbd "<XF86AudioRaiseVolume>") 'pipewire-increase-volume)
+   #+end_src
+
+** Configuration
+
+=M-x customize-group RET pipewire RET=
+
+** Library
+
+pipewire-0 consists of the following source files:
+
+- [[file:pw-lib.el][pw-lib.el]] :: PipeWire library to be used in Elisp programs.
+- [[file:pw-access.el][pw-access.el]] :: PipeWire communication interface, not supposed to be
+  used outside =pw-lib=.
+- [[file:pw-ui.el][pw-ui.el]] :: User commands and interface.
+
+Look into [[file:pw-lib.el][pw-lib.el]] to see what public =pw-lib-*= functions are
+available there.  For example, the following snippet can be used to
+display current volume level of the default audio sink:
+
+   #+begin_src elisp
+(let ((object (pw-lib-default-audio-sink)))
+  (format "%s%s"
+          (pw-lib-volume object t)
+          (if (pw-lib-muted-p object) "(M)" "")))
+   #+end_src
+
+* Notes
+
+PipeWire is currently accessed using [[https://docs.pipewire.org/page_man_pw_cli_1.html][pw-cli]] command line utility.  Its
+output is apparently undocumented and changes between versions so this
+is not a reliable way to communicate with PipeWire.  But I don’t know
+about anything better currently.  Nevertheless, it’s easy to replace
+pw-cli with something else in [[file:pw-access.el][pw-access.el]].
+
+** Why is it named pipewire-0?
+
+I wrote pipewire-0 because I couldn’t find any Emacs interface to
+PipeWire.  I would name it simply pipewire or pipewire-el but I expect
+that someone will write a full-fledged PipeWire interface sooner or
+later.  I’d like to avoid confusion and reserve the plain name for the
+future interface, while having the basic above zero, pipewire-0,
+support for now.
+
+* Contact
+
+pipewire-0 is available at [[https://git.zamazal.org/pdm/pipewire-0][git.zamazal.org]].  You can file issues
+there.
+
+If you don’t want to discuss things publicly or to bother registering
+at yet another web site, you can reach me at [[mailto:pdm@zamazal.org][pdm@zamazal.org]].
