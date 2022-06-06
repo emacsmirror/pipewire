@@ -198,9 +198,11 @@ rather than using cached data to obtain the result."
          (cdr (assoc "volume" parameters))
        (nth port-id (cdr (assoc (if monitor-p "monitorVolumes" "channelVolumes") parameters)))))))
    
-(defun pw-lib-set-volume (volume object)
+(defun pw-lib-set-volume (volume object &optional single-p)
   "Set the volume of PipeWire OBJECT to VOLUME.
-VOLUME must be an integer in the range 0-100."
+VOLUME must be an integer in the range 0-100.
+If SINGLE-P is non-nil, set the volume only for a single channel,
+otherwise set the volume to the same value for all the related channels."
   (cl-destructuring-bind (node-p parameters monitor-p node-id port-id)
       (pw-lib--object-parameters object)
     (let* ((property (cond
@@ -211,8 +213,10 @@ VOLUME must be an integer in the range 0-100."
            (value (if node-p
                       float-volume
                     (let ((orig-value (cdr (assoc property parameters))))
-                      (cl-substitute float-volume nil orig-value
-                                     :test #'always :start port-id :count 1)))))
+                      (if single-p
+                          (cl-substitute float-volume nil orig-value
+                                         :test #'always :start port-id :count 1)
+                        (make-list (length orig-value) float-volume))))))
       (pw-access-set-properties pw-lib--accessor node-id (list (cons property value))))))
 
 (defun pw-lib-set-default (object stored-p)

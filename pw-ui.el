@@ -150,7 +150,7 @@ object.  Otherwise apply it on the default audio sink."
     (pw-ui--update (format "%s %s" (pw-ui--object-name object) (if muted-p "muted" "unmuted")))))
 
 ;;;###autoload
-(defun pipewire-set-volume (volume &optional object)
+(defun pipewire-set-volume (volume &optional object single-p)
   "Set volume of an audio output or input.
 VOLUME must be a number in the range 0-100.
 If OBJECT is given (only Nodes and Ports are allowed) or if on a Node
@@ -160,32 +160,52 @@ Otherwise apply it on the default audio sink."
   (setq volume (max 0 (min 100 volume)))
   (unless object
     (setq object (pw-ui--current-object t '("Node" "Port"))))
-  (pw-lib-set-volume volume object)
+  (pw-lib-set-volume volume object single-p)
   (pw-ui--update (format "Volume %s for %s" volume (pw-ui--object-name object))))
 
-(defun pw-ui--change-volume (step)
+(defun pw-ui--change-volume (step &optional single-p)
   (let* ((object (pw-ui--current-object t '("Node" "Port")))
          (volume (pw-lib-volume object))
          (new-volume (max 0 (min 100 (+ volume step)))))
-    (pipewire-set-volume new-volume object)))
-    
+    (pipewire-set-volume new-volume object single-p)))
+
 ;;;###autoload
-(defun pipewire-increase-volume ()
+(defun pipewire-increase-volume (&optional single-p)
+  "Increase volume of an audio output or input.
+The volume is increased by `pipewire-volume-step'.
+If on a Node or Port in a PipeWire buffer, apply it on all the
+channels of the given object.  Otherwise apply it on the default audio
+sink."
+  (interactive)
+  (pw-ui--change-volume pipewire-volume-step single-p))
+
+;;;###autoload
+(defun pipewire-increase-volume-single ()
   "Increase volume of an audio output or input.
 The volume is increased by `pipewire-volume-step'.
 If on a Node or Port in a PipeWire buffer, apply it on the given
 object.  Otherwise apply it on the default audio sink."
   (interactive)
-  (pw-ui--change-volume pipewire-volume-step))
+  (pipewire-increase-volume t))
 
 ;;;###autoload
-(defun pipewire-decrease-volume ()
+(defun pipewire-decrease-volume (&optional single-p)
+  "Decrease volume of an audio output or input.
+The volume is decreased by `pipewire-volume-step'.
+If on a Node or Port in a PipeWire buffer, apply it on all the
+channels of the given object.  Otherwise apply it on the default audio
+sink."
+  (interactive)
+  (pw-ui--change-volume (- pipewire-volume-step) single-p))
+
+;;;###autoload
+(defun pipewire-decrease-volume-single ()
   "Decrease volume of an audio output or input.
 The volume is decreased by `pipewire-volume-step'.
 If on a Node or Port in a PipeWire buffer, apply it on the given
 object.  Otherwise apply it on the default audio sink."
   (interactive)
-  (pw-ui--change-volume (- pipewire-volume-step)))
+  (pipewire-decrease-volume t))
 
 ;;;###autoload
 (defun pipewire-set-default ()
@@ -212,9 +232,10 @@ Otherwise ask for the Node to set as the default Node."
     (define-key map "d" 'pipewire-set-default)
     (define-key map "m" 'pipewire-toggle-muted)
     (define-key map "v" 'pipewire-set-volume)
-    (define-key map "+" 'pipewire-increase-volume)
     (define-key map "=" 'pipewire-increase-volume)
     (define-key map "-" 'pipewire-decrease-volume)
+    (define-key map "+" 'pipewire-increase-volume-single)
+    (define-key map "_" 'pipewire-decrease-volume-single)
     map))
 
 (define-derived-mode pipewire-mode special-mode "PW"
