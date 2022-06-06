@@ -172,9 +172,13 @@ Note this interface may not work with all PipeWire versions.")
     (pw-cli--parse-properties)))
 
 (defun pw-cli--format-property-value (value)
-  (if (consp value)
-      (concat "[ " (mapconcat #'pw-cli--format-property-value value ", ") " ]")
-    value))
+  (cond
+   ((consp value)
+    (concat "[ " (mapconcat #'pw-cli--format-property-value value ", ") " ]"))
+   ((numberp value)
+    (number-to-string value))
+   (t
+    value)))
 
 (defun pw-cli--format-property (property)
   (format "%s: %s" (car property) (pw-cli--format-property-value (cdr property))))
