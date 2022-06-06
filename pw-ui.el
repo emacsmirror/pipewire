@@ -181,7 +181,7 @@ object.  Otherwise apply it on the default audio sink."
 ;;;###autoload
 (defun pipewire-decrease-volume ()
   "Decrease volume of an audio output or input.
-The volume is Decreased by `pipewire-volume-step'.
+The volume is decreased by `pipewire-volume-step'.
 If on a Node or Port in a PipeWire buffer, apply it on the given
 object.  Otherwise apply it on the default audio sink."
   (interactive)
