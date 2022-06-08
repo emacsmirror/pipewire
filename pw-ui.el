@@ -122,9 +122,10 @@
     (forward-line (1- current-line))))
 
 (defun pw-ui--update (&optional message)
-  (when (get-buffer pipewire-buffer)
-    (with-current-buffer pipewire-buffer
-      (pipewire-refresh)))
+  (if (get-buffer pipewire-buffer)
+      (with-current-buffer pipewire-buffer
+        (pipewire-refresh))
+    (pw-lib-refresh))
   (when message
     (message message)))
 
