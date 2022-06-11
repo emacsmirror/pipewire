@@ -219,15 +219,25 @@ otherwise set the volume to the same value for all the related channels."
                         (make-list (length orig-value) float-volume))))))
       (pw-access-set-properties pw-lib--accessor node-id (list (cons property value))))))
 
-(defun pw-lib-set-default (object stored-p)
-  "Set PipeWire OBJECT as the default sink or source.
-If STORED-P is non-nil, set the stored default sink or source,
-otherwise set the current default sink or source."
+(defun pw-lib--set-default-node (object stored-p)
   (let ((suffix (mapconcat #'downcase
                            (split-string (pw-lib-object-value object "media.class") "/")
                            "."))
         (prefix (if stored-p "default.configured." "default."))
         (node-name (pw-lib-object-value object "node.name")))
     (pw-access-set-default pw-lib--accessor (concat prefix suffix) node-name)))
+
+(defun pw-lib-set-default (object stored-p)
+  "Set PipeWire OBJECT as the default sink or source.
+If STORED-P is non-nil, set the stored default sink or source,
+otherwise set the current default sink or source."
+  (pcase (pw-lib-object-type object)
+    ("Device"
+     (dolist (node (pw-lib-children (pw-lib-object-id object) (pw-lib-bindings) "Node"))
+       (pw-lib--set-default-node node stored-p)))
+    ("Node"
+     (pw-lib--set-default-node object stored-p))
+    (_
+     (error "Cannot set this kind of object as default."))))
                            
 (provide 'pw-lib)

@@ -212,9 +212,10 @@ object.  Otherwise apply it on the default audio sink."
 (defun pipewire-set-default ()
   "Set default sink or source.
 If on a Node in a PipeWire buffer, apply it on the given object.
+If on a Device, apply it on all its nodes.
 Otherwise ask for the Node to set as the default Node."
   (interactive)
-  (let ((object (or (pw-ui--current-object nil '("Node"))
+  (let ((object (or (pw-ui--current-object nil '("Device" "Node"))
                     (let* ((default-node-ids (mapcar #'cdr (pw-lib-default-nodes)))
                            (nodes (cl-remove-if
                                    #'(lambda (n) (member (pw-lib-object-id n) default-node-ids))
