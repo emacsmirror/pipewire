@@ -251,7 +251,7 @@ applied on some of them or the buffer:
 (defun pipewire ()
   "Display a PipeWire buffer."
   (interactive)
-  (switch-to-buffer pipewire-buffer)
+  (pop-to-buffer pipewire-buffer)
   (pipewire-refresh)
   (pipewire-mode))
 
