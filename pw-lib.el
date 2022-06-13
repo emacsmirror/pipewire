@@ -30,10 +30,12 @@
 (defvar pw-lib--accessor (pw-cli-accessor))
 
 (defvar pw-lib--objects '())
+(defvar pw-lib--bindings nil)
 
 (defun pw-lib-refresh ()
   "Clear cache of objects retrieved from PipeWire."
-  (setq pw-lib--objects (pw-access-objects pw-lib--accessor)))
+  (setq pw-lib--objects (pw-access-objects pw-lib--accessor)
+        pw-lib--bindings nil))
 
 (defun pw-lib-objects (&optional type)
   "Return a list of PipeWire objects.
@@ -119,23 +121,26 @@ An association lists with elements of the form (PARENT . CHILD) is
 returned where PARENT and CHILD are numeric ids of PipeWire objects.
 Note that PipeWire data is cached, if you need its up-to-date
 version, call `pw-lib-refresh' first."
-  (apply #'nconc (mapcar #'(lambda (o)
-                             (let ((o-id (pw-lib-object-id o)))
-                               (mapcar #'(lambda (p)
-                                           (cons o-id (cdr p)))
-                                       (cl-remove-if-not #'numberp (pw-lib--object-info o)
-                                                         :key #'cdr))))
-                         (pw-lib-objects))))
+  (or pw-lib--bindings
+      (setq pw-lib--bindings
+            (apply #'nconc
+                   (mapcar #'(lambda (o)
+                               (let ((o-id (pw-lib-object-id o)))
+                                 (mapcar #'(lambda (p)
+                                             (cons o-id (cdr p)))
+                                         (cl-remove-if-not #'numberp (pw-lib--object-info o)
+                                                           :key #'cdr))))
+                           (pw-lib-objects))))))
 
-(defun pw-lib-children (id bindings &optional type)
+(defun pw-lib-children (id &optional type)
   "Return child objects of the object identified by numeric PipeWire ID.
-BINDINGS are object bindings as returned from `pw-lib-bindings'.
 If a string TYPE is specified then only children of the given PipeWire
 type are returned.
 Note that PipeWire data is cached, if you need its up-to-date
 version, call `pw-lib-refresh' first."
   (let ((children (mapcar #'pw-lib-get-object
-                          (mapcar #'car (cl-remove-if #'(lambda (b) (/= (cdr b) id)) bindings)))))
+                          (mapcar #'car (cl-remove-if #'(lambda (b) (/= (cdr b) id))
+                                                      (pw-lib-bindings))))))
     (when type
       (setq children (cl-remove-if-not #'(lambda (o) (equal (pw-lib-object-type o) type))
                                        children)))
@@ -233,7 +238,7 @@ If STORED-P is non-nil, set the stored default sink or source,
 otherwise set the current default sink or source."
   (pcase (pw-lib-object-type object)
     ("Device"
-     (dolist (node (pw-lib-children (pw-lib-object-id object) (pw-lib-bindings) "Node"))
+     (dolist (node (pw-lib-children (pw-lib-object-id object) "Node"))
        (pw-lib--set-default-node node stored-p)))
     ("Node"
      (pw-lib--set-default-node object stored-p))
