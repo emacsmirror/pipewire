@@ -33,6 +33,39 @@
   :type 'number
   :group 'pipewire)
 
+(defcustom pipewire-osd-enable t
+  "If non-nil, display on screen display indicator for some operations.
+The indicator is displayed only on graphical terminals."
+  :type 'boolean
+  :group 'pipewire)
+
+(defcustom pipewire-osd-timeout 3
+  "Number of seconds to show an on screen display indicator."
+  :type 'number
+  :group 'pipewire)
+
+(defcustom pipewire-osd-width (/ 100 pipewire-volume-step)
+  "Width of the on screen display indicator in characters."
+  :type 'natnum
+  :group 'pipewire)
+
+(defcustom pipewire-osd-volume-on-color "lime green"
+  "Color to use in the on screen display indicator for active volume."
+  :type 'color
+  :group 'pipewire)
+
+(defcustom pipewire-osd-volume-off-color "pale green"
+  "Color to use in the on screen display indicator for inactive volume."
+  :type 'color
+  :group 'pipewire)
+
+(defcustom pipewire-osd-frame-parameters
+  `((left . (+ 50))
+    (top . (- 50)))
+  "Alist of frame parameters for the on screen display indicator."
+  :type '(alist :key-type symbol :value-type sexp)
+  :group 'pip-frame)
+
 (defface pipewire-label-face
   '((t (:weight bold :overline t)))
   "Face to use for PipeWire node group labels."
@@ -121,16 +154,11 @@
     (goto-char (point-min))
     (forward-line (1- current-line))))
 
-(defun pw-ui--update (&optional message)
-  (if (get-buffer pipewire-buffer)
-      (with-current-buffer pipewire-buffer
-        (pipewire-refresh))
-    (pw-lib-refresh))
-  (when message
-    (message message)))
+(defun pw-ui--current-object-id ()
+  (get-text-property (point) 'pw-object-id))
 
 (defun pw-ui--current-object (&optional use-default-p allowed-types)
-  (let* ((id (get-text-property (point) 'pw-object-id))
+  (let* ((id (pw-ui--current-object-id))
          (object (when id (pw-lib-get-object id))))
     (when (and object
                (not (null allowed-types))
@@ -140,6 +168,84 @@
       (setq object (pw-lib-default-audio-sink)))
     object))
 
+(defvar pw-ui--osd-timer nil)
+(defvar pw-ui--osd-frame nil)
+(defvar pw-ui--osd-buffer nil)
+(defvar pw-ui--osd-buffer-name "*pipewire-osd*")
+
+(defun pw-ui--osd-display (string)
+  (when pw-ui--osd-timer
+    (cancel-timer pw-ui--osd-timer))
+  (let ((frame-width (+ 2 (length string))))
+    (when (and pw-ui--osd-frame
+               (not (= frame-width (frame-width pw-ui--osd-frame))))
+      (delete-frame pw-ui--osd-frame)
+      (setq pw-ui--osd-frame nil))
+    (with-current-buffer (setq pw-ui--osd-buffer (get-buffer-create pw-ui--osd-buffer-name))
+      (erase-buffer)
+      (insert " " string)
+      (setq mode-line-format nil)
+      (unless pw-ui--osd-frame
+        (setq pw-ui--osd-frame (make-frame `((unsplittable . t)
+                                             ,@pipewire-osd-frame-parameters
+                                             (minibuffer . nil)
+                                             (width . ,(+ 2 (length string)))
+                                             (height . 1)
+                                             (min-width . 1)
+                                             (min-height . 1)
+                                             (left-fringe . 0)
+                                             (right-fringe . 0)
+                                             (no-other-frame . t)
+                                             (undecorated . t)
+                                             (vertical-scroll-bars . nil)
+                                             (horizontal-scroll-bars . nil)
+                                             (menu-bar-lines . 0)
+                                             (tool-bar-lines . 0)
+                                             (tab-bar-lines . 0)
+                                             (cursor-type . nil)))))))
+  (setq pw-ui--osd-timer
+        (run-with-timer
+         pipewire-osd-timeout nil
+         #'(lambda ()
+             (when pw-ui--osd-frame
+               (ignore-errors (delete-frame pw-ui--osd-frame)))
+             (when pw-ui--osd-buffer
+               (ignore-errors (kill-buffer pw-ui--osd-buffer)))
+             (setq pw-ui--osd-frame nil
+                   pw-ui--osd-timer nil
+                   pw-ui--osd-buffer nil)))))
+
+(defmacro pw-ui--osd (&rest body)
+  (declare (indent defun))
+  (let (($string (gensym)))
+    `(when (and window-system pipewire-osd-enable)
+       (if-let ((,$string (progn ,@body)))
+           (pw-ui--osd-display ,$string)))))
+
+(defun pw-ui--update (&optional message)
+  (if (get-buffer pipewire-buffer)
+      (with-current-buffer pipewire-buffer
+        (pipewire-refresh))
+    (pw-lib-refresh))
+  (when message
+    (message message)))
+
+(defun pw-ui--osd-volume (object)
+  (pw-ui--osd
+    (unless (eq (pw-ui--current-object-id) (pw-lib-object-id object))
+      (let* ((object* (pw-lib-get-object (pw-lib-object-id object))) ; refreshed version
+             (volume (pw-lib-volume object*))
+             (muted-p (pw-lib-muted-p object*))
+             (step (/ 100.0 pipewire-osd-width))
+             (mark (if muted-p ?- ?|))
+             (n-active (round (/ volume step)))
+             (n-inactive (- pipewire-osd-width n-active)))
+        (format "%s%s"
+                (propertize (make-string n-active mark)
+                            'face `(:background ,pipewire-osd-volume-on-color))
+                (propertize (make-string n-inactive mark)
+                            'face `(:background ,pipewire-osd-volume-off-color)))))))
+
 ;;;###autoload
 (defun pipewire-toggle-muted ()
   "Switch mute status of an audio output or input.
@@ -148,7 +254,8 @@ object.  Otherwise apply it on the default audio sink."
   (interactive)
   (let* ((object (pw-ui--current-object t '("Node" "Port")))
          (muted-p (pw-lib-toggle-mute object)))
-    (pw-ui--update (format "%s %s" (pw-ui--object-name object) (if muted-p "muted" "unmuted")))))
+    (pw-ui--update (format "%s %s" (pw-ui--object-name object) (if muted-p "muted" "unmuted")))
+    (pw-ui--osd-volume object)))
 
 ;;;###autoload
 (defun pipewire-set-volume (volume &optional object single-p)
@@ -162,7 +269,8 @@ Otherwise apply it on the default audio sink."
   (unless object
     (setq object (pw-ui--current-object t '("Node" "Port"))))
   (pw-lib-set-volume volume object single-p)
-  (pw-ui--update (format "Volume %s for %s" volume (pw-ui--object-name object))))
+  (pw-ui--update (format "Volume %s for %s" volume (pw-ui--object-name object)))
+  (pw-ui--osd-volume object))
 
 (defun pw-ui--change-volume (step &optional single-p)
   (let* ((object (pw-ui--current-object t '("Node" "Port")))
