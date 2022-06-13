@@ -164,7 +164,8 @@ The indicator is displayed only on graphical terminals."
                (not (member (pw-lib-object-type object) allowed-types)))
       (setq object nil))
     (when (and use-default-p (not object))
-      (setq object (pw-lib-default-audio-sink)))
+      (setq object (or (car (pw-lib-default-playback-ports))
+                       (pw-lib-default-audio-sink))))
     object))
 
 (defvar pw-ui--osd-timer nil)
