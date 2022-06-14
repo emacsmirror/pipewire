@@ -115,6 +115,9 @@ version, call `pw-lib-refresh' first."
                                   (cons (car d) (cdr (assoc (cdr d) nodes))))
                               defaults))))
 
+(defun pw-lib--default-node (key)
+  (pw-lib-get-object (cdr (assoc key (pw-lib-default-nodes)))))
+
 (defun pw-lib-bindings ()
   "Return bindings between PipeWire objects.
 An association lists with elements of the form (PARENT . CHILD) is
@@ -146,17 +149,31 @@ version, call `pw-lib-refresh' first."
                                        children)))
     children))
 
+(defun pw-lib--node-ports (node &optional regexp)
+  (when node
+    (let ((ports (pw-lib-children (pw-lib-object-id node) "Port")))
+      (if regexp
+          (cl-delete-if-not #'(lambda (o)
+                                (if-let ((name (pw-lib-object-value o "port.name")))
+                                    (string-match regexp name)))
+                            ports)
+        ports))))
+
 (defun pw-lib-default-audio-sink ()
   "Return a PipeWire object that is the current default audio sink."
-  (pw-lib-get-object (cdr (assoc "default.audio.sink" (pw-lib-default-nodes)))))
+  (pw-lib--default-node "default.audio.sink"))
+
+(defun pw-lib-default-audio-source ()
+  "Return a PipeWire object that is the current default audio source."
+  (pw-lib--default-node "default.audio.source"))
 
 (defun pw-lib-default-playback-ports ()
   "Return list of PipeWire objects that are default playback ports."
-  (if-let ((sink (pw-lib-default-audio-sink)))
-      (cl-remove-if-not #'(lambda (o)
-                            (if-let ((name (pw-lib-object-value o "port.name")))
-                                (string-match "^playback" name)))
-                        (pw-lib-children (pw-lib-object-id sink) "Port"))))
+  (pw-lib--node-ports (pw-lib-default-audio-sink) "^playback"))
+
+(defun pw-lib-default-capture-ports ()
+  "Return list of PipeWire objects that are default capture ports."
+  (pw-lib--node-ports (pw-lib-default-audio-source) "^capture"))
 
 (defun pw-lib--volume-% (volume)
   (when volume
