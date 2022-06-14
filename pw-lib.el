@@ -152,10 +152,11 @@ version, call `pw-lib-refresh' first."
 
 (defun pw-lib-default-playback-ports ()
   "Return list of PipeWire objects that are default playback ports."
-  (cl-remove-if-not #'(lambda (o)
-                        (if-let ((name (pw-lib-object-value o "port.name")))
-                            (string-match "^playback" name)))
-                    (pw-lib-children (pw-lib-object-id (pw-lib-default-audio-sink)) "Port")))
+  (if-let ((sink (pw-lib-default-audio-sink)))
+      (cl-remove-if-not #'(lambda (o)
+                            (if-let ((name (pw-lib-object-value o "port.name")))
+                                (string-match "^playback" name)))
+                        (pw-lib-children (pw-lib-object-id sink) "Port"))))
 
 (defun pw-lib--volume-% (volume)
   (when volume
