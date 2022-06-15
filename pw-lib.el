@@ -197,7 +197,7 @@ version, call `pw-lib-refresh' first."
 Applicable only to Nodes and Ports.
 If REFRESH is non-nil then retrive fresh information from PipeWire
 rather than using cached data to obtain the result."
-  (cl-destructuring-bind (node-p parameters monitor-p node-id port-id)
+  (cl-destructuring-bind (_node-p parameters monitor-p _node-id _port-id)
       (pw-lib--object-parameters object refresh)
     (eq (cdr (assoc (if monitor-p "monitorMute" "mute") parameters)) 'true)))
 
@@ -207,7 +207,7 @@ Return the new boolean mute status of OBJECT.
 Applicable only to Nodes and Ports.
 If REFRESH is non-nil then retrive fresh information from PipeWire
 rather than using cached data to obtain the result."
-  (cl-destructuring-bind (node-p parameters monitor-p node-id port-id)
+  (cl-destructuring-bind (_node-p _parameters monitor-p node-id _port-id)
       (pw-lib--object-parameters object refresh)
     (let* ((mute (not (pw-lib-muted-p object)))
            (property (if monitor-p "monitorMute" "mute"))
@@ -221,7 +221,7 @@ The returned value is an integer in the range 0-100.
 Applicable only to Nodes and Ports.
 If REFRESH is non-nil then retrive fresh information from PipeWire
 rather than using cached data to obtain the result."
-  (cl-destructuring-bind (node-p parameters monitor-p node-id port-id)
+  (cl-destructuring-bind (node-p parameters monitor-p _node-id port-id)
       (pw-lib--object-parameters object refresh)
     (pw-lib--volume-%
      (if node-p

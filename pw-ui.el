@@ -129,7 +129,7 @@ The indicator is displayed only on graphical terminals."
 (defun pw-ui--insert-line (line object)
   (insert (propertize line 'pw-object-id (pw-lib-object-id object)) "\n"))
 
-(defun pipewire-refresh (&optional ignore-auto noconfirm)
+(defun pipewire-refresh (&optional _ignore-auto _noconfirm)
   "Refresh PipeWire buffer."
   (interactive)
   (when (and (not (eq major-mode 'pipewire-mode))

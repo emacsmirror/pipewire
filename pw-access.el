@@ -123,7 +123,7 @@ Note this interface may not work with all PipeWire versions.")
         (push (cons id properties) objects)))
     (nreverse objects)))
 
-(cl-defmethod pw-access-objects ((class pw-cli-accessor))
+(cl-defmethod pw-access-objects ((_class pw-cli-accessor))
   (with-temp-buffer
     (pw-cli--command pw-cli-command '("list-objects"))
     (pw-cli--parse-list)))
@@ -166,7 +166,7 @@ Note this interface may not work with all PipeWire versions.")
           (push (cons property value) properties))))
     properties))
 
-(cl-defmethod pw-access-properties ((class pw-cli-accessor) node-id)
+(cl-defmethod pw-access-properties ((_class pw-cli-accessor) node-id)
   (with-temp-buffer
     (pw-cli--command pw-cli-command `("enum-params" ,(number-to-string node-id) "Props"))
     (pw-cli--parse-properties)))
@@ -183,11 +183,11 @@ Note this interface may not work with all PipeWire versions.")
 (defun pw-cli--format-property (property)
   (format "%s: %s" (car property) (pw-cli--format-property-value (cdr property))))
 
-(cl-defmethod pw-access-set-properties ((class pw-cli-accessor) node-id properties)
   (let* ((formatted (mapconcat #'pw-cli--format-property properties ", "))
          (props (concat "{ " formatted " }")))
     (call-process pw-cli-command nil pw-cli-command nil
                   "set-param" (number-to-string node-id) "Props" props)))
+(cl-defmethod pw-access-set-properties ((_class pw-cli-accessor) node-id properties)
 
 (defun pw-cli--parse-metadata ()
   (let ((metadata '()))
@@ -197,12 +197,12 @@ Note this interface may not work with all PipeWire versions.")
       (push (cons (match-string 1) (match-string 3)) metadata))
     metadata))
 
-(cl-defmethod pw-access-defaults ((class pw-cli-accessor))
+(cl-defmethod pw-access-defaults ((_class pw-cli-accessor))
   (with-temp-buffer
     (pw-cli--command pw-cli-metadata-command '("0"))
     (pw-cli--parse-metadata)))
 
-(cl-defmethod pw-access-set-default ((class pw-cli-accessor) property node-name)
+(cl-defmethod pw-access-set-default ((_class pw-cli-accessor) property node-name)
   (call-process pw-cli-metadata-command nil pw-cli-metadata-command nil
                 "0" property (format "{ \"name\": \"%s\" }" node-name)))
 
