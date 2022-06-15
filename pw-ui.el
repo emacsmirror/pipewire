@@ -110,10 +110,14 @@ The indicator is displayed only on graphical terminals."
   (let* ((id (pw-lib-object-id object))
          (type (pw-lib-object-type object))
          (text (format "%4s: %s" id (pw-ui--object-name object)))
+         (profile (when (equal type "Device")
+                    (pw-lib-current-profile (pw-lib-object-id object))))
          (face (if (member id default-ids) 'pipewire-default-object-face 'default))
          (media-class (pw-lib-object-value object "media.class")))
     (when media-class
       (setq text (format "%s (%s)" text media-class)))
+    (when profile
+      (setq text (format "%s: %s" text profile)))
     (let ((volume-p (member type '("Node" "Port"))))
       (when (and volume-p (pw-lib-muted-p object))
         (setq face `(:inherit (pipewire-muted-face ,face))))
@@ -337,10 +341,24 @@ Otherwise ask for the Node to set as the default Node."
     (pw-lib-set-default object t)
     (pw-ui--update)))
 
+(defun pipewire-set-profile ()
+  "Set profile of the device at the current point."
+  (interactive)
+  (if-let ((device (pw-ui--current-object nil '("Device")))
+           (device-id (pw-lib-object-id device))
+           (profiles (pw-lib-profiles device-id)))
+      (progn
+        (pw-lib-set-profile device-id (completing-read "Select profile: " profiles nil t))
+        ;; Without this, ports of the device may not be displayed on the update:
+        (sit-for 0)
+        (pw-ui--update))
+    (error "Nothing to set a profile for here")))
+
 (defvar pipewire-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "d" 'pipewire-set-default)
     (define-key map "m" 'pipewire-toggle-muted)
+    (define-key map "p" 'pipewire-set-profile)
     (define-key map "v" 'pipewire-set-volume)
     (define-key map "=" 'pipewire-increase-volume)
     (define-key map "-" 'pipewire-decrease-volume)

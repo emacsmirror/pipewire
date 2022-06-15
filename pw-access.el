@@ -73,6 +73,30 @@ PROPERTIES is an association list in the same format as in
 `pw-access-properties'.  It needn't contain all the properties, just
 the properties to be changed.")
 
+(cl-defgeneric pw-access-current-profile (class device-id)
+  "Return current profile of the given device.
+DEVICE-ID is a numeric PipeWire Device id (other kinds of PipeWire
+objects are not supported in this method).
+
+The profile is an association list with elements of the form
+(PROPERTY . VALUE), in the same format as properties in
+`pw-access-properties'.")
+
+(cl-defgeneric pw-access-profiles (class device-id)
+  "Return available profiles of the given device.
+DEVICE-ID is a numeric PipeWire Device id (other kinds of PipeWire
+objects are not supported in this method).
+
+Return a list of profiles, which are in the same format as in
+`pw-access-current-profile'.")
+
+(cl-defgeneric pw-access-set-profile (class device-id profile-index)
+  "Set the profile of the given device.
+DEVICE-ID is a numeric PipeWire Device id (other kinds of PipeWire
+objects are not supported in this method).
+PROFILE-INDEX is a numeric index of the profile to set, as returned
+from PipeWire.")
+
 (cl-defgeneric pw-access-defaults (class)
   "Return default sinks and sources.
 An association lists is returned.  Each list element is of the form
@@ -183,11 +207,29 @@ Note this interface may not work with all PipeWire versions.")
 (defun pw-cli--format-property (property)
   (format "%s: %s" (car property) (pw-cli--format-property-value (cdr property))))
 
-  (let* ((formatted (mapconcat #'pw-cli--format-property properties ", "))
-         (props (concat "{ " formatted " }")))
+(defun pw-cli--set-parameter (object-id parameter value)
+  (let* ((formatted (mapconcat #'pw-cli--format-property value ", "))
+         (param-value (concat "{ " formatted " }")))
     (call-process pw-cli-command nil pw-cli-command nil
-                  "set-param" (number-to-string node-id) "Props" props)))
+                  "set-param" (number-to-string object-id) parameter param-value)))
+
 (cl-defmethod pw-access-set-properties ((_class pw-cli-accessor) node-id properties)
+  (pw-cli--set-parameter node-id "Props" properties))
+
+(cl-defmethod pw-access-current-profile ((_class pw-cli-accessor) device-id)
+  (with-temp-buffer
+    (pw-cli--command pw-cli-command `("enum-params" ,(number-to-string device-id) "Profile"))
+    (pw-cli--parse-properties)))
+
+(cl-defmethod pw-access-profiles ((_class pw-cli-accessor) device-id)
+  (with-temp-buffer
+    (pw-cli--command pw-cli-command `("enum-params" ,(number-to-string device-id) "EnumProfile"))
+    (cl-loop for profile = (pw-cli--parse-properties) then (pw-cli--parse-properties)
+             while profile
+             collect profile)))
+
+(cl-defmethod pw-access-set-profile ((_class pw-cli-accessor) device-id profile-index)
+  (pw-cli--set-parameter device-id "Profile" `(("index" . ,profile-index) ("save" . "true"))))
 
 (defun pw-cli--parse-metadata ()
   (let ((metadata '()))

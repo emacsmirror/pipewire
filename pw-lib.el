@@ -81,6 +81,36 @@ If the given KEY doesn't exist in OBJECT, return DEFAULT."
 E.g. \"Device\", \"Node\", \"Port\", \"Client\", ..."
   (pw-lib-object-value object 'type))
 
+(defun pw-lib--profile-name (profile)
+  (cdr (or (assoc "description" profile)
+           (assoc "name" profile))))
+
+(defun pw-lib-current-profile (device-id)
+  "Return the current profile name of the given device.
+DEVICE-ID is the numeric id of the device.
+The returned profile name is a string, or nil if it cannot be found."
+  (pw-lib--profile-name (pw-access-current-profile pw-lib--accessor device-id)))
+
+(defun pw-lib-profiles (device-id)
+  "Return list of available profiles of the given device.
+DEVICE-ID is the numeric id of the device.
+A list of strings (possibly empty) is returned."
+  (mapcar #'pw-lib--profile-name (pw-access-profiles pw-lib--accessor device-id)))
+
+(defun pw-lib-set-profile (device-id profile)
+  "Set the profile of the given device.
+DEVICE-ID is the numeric id of the device.
+PROFILE is a string name of the profile, it must be one of the values
+returned from `pw-lib-profiles'. "
+  (let* ((all-profiles (pw-access-profiles pw-lib--accessor device-id))
+         (properties (cl-find profile all-profiles :key #'pw-lib--profile-name :test #'equal)))
+    (unless properties
+      (error "Profile %s of device %s not found" profile device-id))
+    (let ((index (cdr (assoc "index" properties))))
+      (unless index
+        (error "Index of %s profile of device %s not found" profile device-id))
+      (pw-access-set-profile pw-lib--accessor device-id index))))
+
 (defun pw-lib--node (object)
   (if (equal (pw-lib-object-type object) "Node")
       object
