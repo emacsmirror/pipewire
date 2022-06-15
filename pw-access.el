@@ -153,17 +153,17 @@ Note this interface may not work with all PipeWire versions.")
   
 (defun pw-cli--parse-properties ()
   (pw-cli--next-line)
-  (let ((end (save-excursion
-               (or (and (re-search-forward "^  Object:" nil t)
-                        (point))
-                   (point-max))))
+  (let ((end (or (save-excursion (re-search-forward "^  Object:" nil t))
+                 (point-max)))
         (properties '()))
-    (while (re-search-forward "^    Prop: key \\([A-Za-z:]+\\)" end t)
+    (while (and (< (point) end)
+                (re-search-forward "^    Prop: key \\([A-Za-z:]+\\)" end t))
       (pw-cli--next-line)
       (let ((property (car (last (split-string (match-string 1) ":"))))
             (value (pw-cli--read-property)))
         (when value
           (push (cons property value) properties))))
+    (goto-char end)
     properties))
 
 (cl-defmethod pw-access-properties ((_class pw-cli-accessor) node-id)
