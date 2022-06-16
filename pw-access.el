@@ -207,11 +207,13 @@ Note this interface may not work with all PipeWire versions.")
 (defun pw-cli--format-property (property)
   (format "%s: %s" (car property) (pw-cli--format-property-value (cdr property))))
 
+(defun pw-cli--format-properties (properties)
+  (concat "{ " (mapconcat #'pw-cli--format-property properties ", ") " }"))
+
 (defun pw-cli--set-parameter (object-id parameter value)
-  (let* ((formatted (mapconcat #'pw-cli--format-property value ", "))
-         (param-value (concat "{ " formatted " }")))
+  (let* ((formatted (pw-cli--format-properties value)))
     (call-process pw-cli-command nil pw-cli-command nil
-                  "set-param" (number-to-string object-id) parameter param-value)))
+                  "set-param" (number-to-string object-id) parameter formatted)))
 
 (cl-defmethod pw-access-set-properties ((_class pw-cli-accessor) node-id properties)
   (pw-cli--set-parameter node-id "Props" properties))
