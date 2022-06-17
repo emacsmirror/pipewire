@@ -60,8 +60,8 @@ The indicator is displayed only on graphical terminals."
   :group 'pipewire)
 
 (defcustom pipewire-osd-frame-parameters
-  `((left . (+ 50))
-    (top . (- 50)))
+  `((left . 0.05)
+    (top . 0.95))
   "Alist of frame parameters for the on screen display indicator."
   :type '(alist :key-type symbol :value-type sexp)
   :group 'pip-frame)
