@@ -193,6 +193,7 @@ The indicator is displayed only on graphical terminals."
         (setq pw-ui--osd-frame (make-frame `((unsplittable . t)
                                              ,@pipewire-osd-frame-parameters
                                              (minibuffer . nil)
+                                             (parent-frame . ,(selected-frame))
                                              (width . ,(+ 2 (length string)))
                                              (height . 1)
                                              (min-width . 1)
