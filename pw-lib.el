@@ -31,11 +31,13 @@
 
 (defvar pw-lib--objects '())
 (defvar pw-lib--bindings nil)
+(defvar pw-lib--defaults nil)
 
 (defun pw-lib-refresh ()
   "Clear cache of objects retrieved from PipeWire."
   (setq pw-lib--objects (pw-access-objects pw-lib--accessor)
-        pw-lib--bindings nil))
+        pw-lib--bindings nil
+        pw-lib--defaults nil))
 
 (defun pw-lib-objects (&optional type)
   "Return a list of PipeWire objects.
@@ -136,14 +138,17 @@ default sink or source as reported by PipeWire and ID is the
 corresponding PipeWire node numeric id.
 Note that PipeWire data is cached, if you need its up-to-date
 version, call `pw-lib-refresh' first."
-  (let ((defaults (pw-access-defaults pw-lib--accessor))
-        (nodes (mapcar #'(lambda (o)
-                           (cons (pw-lib-object-value o "node.name") (pw-lib-object-id o)))
-                       (pw-lib-objects "Node"))))
-    (cl-remove-if-not #'cdr
-                      (mapcar #'(lambda (d)
-                                  (cons (car d) (cdr (assoc (cdr d) nodes))))
-                              defaults))))
+  (unless pw-lib--defaults
+    (let ((defaults (pw-access-defaults pw-lib--accessor))
+          (nodes (mapcar #'(lambda (o)
+                             (cons (pw-lib-object-value o "node.name") (pw-lib-object-id o)))
+                         (pw-lib-objects "Node"))))
+      (setq pw-lib--defaults
+            (cl-remove-if-not #'cdr
+                              (mapcar #'(lambda (d)
+                                          (cons (car d) (cdr (assoc (cdr d) nodes))))
+                                      defaults)))))
+  pw-lib--defaults)
 
 (defun pw-lib--default-node (key)
   (pw-lib-get-object (cdr (assoc key (pw-lib-default-nodes)))))
