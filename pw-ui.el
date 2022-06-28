@@ -223,7 +223,8 @@ The indicator is displayed only on graphical terminals."
                  pw-ui--osd-buffer nil)))))
 
 (defmacro pw-ui--osd (&rest body)
-  (declare (indent defun))
+  (declare (debug (body))
+           (indent defun))
   (let (($string (gensym)))
     `(when (and window-system pipewire-osd-enable)
        (if-let ((,$string (progn ,@body)))
