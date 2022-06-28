@@ -252,9 +252,12 @@ The indicator is displayed only on graphical terminals."
                             'face `(:background ,pipewire-osd-volume-off-color)))))))
 
 (defun pw-ui--update-muted (object muted-p)
-  (let ((object-name (pw-ui--object-name object))
-        (node-name (pw-ui--object-name (pw-lib-parent-node object))))
-    (pw-ui--update (format "%s in %s %s" object-name node-name (if muted-p "muted" "unmuted")))))
+  (let* ((object-name (pw-ui--object-name object))
+         (parent-node (pw-lib-parent-node object))
+         (node-info (if parent-node
+                       (format " in %s" (pw-ui--object-name parent-node))
+                     "")))
+    (pw-ui--update (format "%s%s %s" object-name node-info (if muted-p "muted" "unmuted")))))
 
 ;;;###autoload
 (defun pipewire-toggle-muted ()
