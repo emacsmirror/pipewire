@@ -17,6 +17,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;;; Commentary:
+;;
 ;; A generic interface for communication with PipeWire (https://pipewire.org).
 ;; It abstracts communication with PipeWire to be backend independent.
 ;; Only functions from this module may communicate with PipeWire.

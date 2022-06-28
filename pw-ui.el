@@ -17,6 +17,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;;; Commentary:
+;;
 ;; PipeWire user interface based on pw-lib.
 ;; An interactive buffer can be displayed using `M-x pipewire'.
 ;; `pipewire-increase-volume', `pipewire-decrease-volume' and
