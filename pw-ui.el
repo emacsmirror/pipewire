@@ -28,7 +28,8 @@
 (require 'pw-lib)
 
 (defgroup pipewire ()
-  "PipeWire user interface.")
+  "PipeWire user interface."
+  :group 'multimedia)
 
 (defcustom pipewire-volume-step 5
   "How many percent points to add or subtract when changing volumes."
