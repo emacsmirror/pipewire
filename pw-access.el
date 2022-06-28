@@ -40,9 +40,9 @@ All PipeWire interfaces should derive from this class.")
 (cl-defgeneric pw-access-objects (class)
   "Return all the objects currently reported by PipeWire.
 It is a list of object data.  Each of the elements has a form
-(OBJECT-ID . INFO) where OBJECT-ID is a numeric OBJECT-ID as
+\(OBJECT-ID . INFO) where OBJECT-ID is a numeric OBJECT-ID as
 reported by PipeWire and INFO is an association list of items
-(NAME . VALUE) where NAME is a string item name as reported by
+\(NAME . VALUE) where NAME is a string item name as reported by
 PipeWire and VALUE is the corresponding value.  VALUE is a number for
 object ids, a string otherwise.
 A special entry with `type' symbol as its name contains the PipeWire
@@ -56,7 +56,7 @@ are not supported in this method).
 Object properties may be, unlike object info items, settable.
 
 An assocation list is returned.  Each list element is of the form
-(PROPERTY . VALUE) where PROPERTY is a string name of the given
+\(PROPERTY . VALUE) where PROPERTY is a string name of the given
 property.  VALUE can be:
 
 - \"true\" or \"false\" for boolean values (t and nil are not used to
@@ -79,7 +79,7 @@ DEVICE-ID is a numeric PipeWire Device id (other kinds of PipeWire
 objects are not supported in this method).
 
 The profile is an association list with elements of the form
-(PROPERTY . VALUE), in the same format as properties in
+\(PROPERTY . VALUE), in the same format as properties in
 `pw-access-properties'.")
 
 (cl-defgeneric pw-access-profiles (class device-id)
@@ -100,7 +100,7 @@ from PipeWire.")
 (cl-defgeneric pw-access-defaults (class)
   "Return default sinks and sources.
 An association lists is returned.  Each list element is of the form
-(KEY . NAME) where KEY is a string identifying the given kind of
+\(KEY . NAME) where KEY is a string identifying the given kind of
 default sink or source as reported by PipeWire and NAME is a string
 name of the node assigned to the default.")
 
