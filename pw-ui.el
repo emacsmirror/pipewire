@@ -68,22 +68,22 @@ The indicator is displayed only on graphical terminals."
   :type '(alist :key-type symbol :value-type sexp)
   :group 'pip-frame)
 
-(defface pipewire-label-face
+(defface pipewire-label
   '((t (:weight bold :overline t)))
   "Face to use for PipeWire node group labels."
   :group 'pipewire)
 
-(defface pipewire-default-object-face
+(defface pipewire-default-object
   '((t (:weight bold)))
   "Face to use for PipeWire default sinks and sources."
   :group 'pipewire)
 
-(defface pipewire-muted-face
+(defface pipewire-muted
   '((t (:strike-through t)))
   "Face to use for muted PipeWire sinks and sources."
   :group 'pipewire)
 
-(defface pipewire-volume-face
+(defface pipewire-volume
   '((t (:inverse-video t)))
   "Face to use for displaying volumes of PipeWire objects."
   :group 'pipewire)
@@ -91,10 +91,10 @@ The indicator is displayed only on graphical terminals."
 (defvar pipewire-buffer "*PipeWire*")
 
 (defun pw-ui--label (label)
-  (propertize (concat label ":") 'face 'pipewire-label-face))
+  (propertize (concat label ":") 'face 'pipewire-label))
 
 (defun pw-ui--object-volume (object)
-  (propertize (pw-lib-volume object) 'face 'pipewire-volume-face))
+  (propertize (pw-lib-volume object) 'face 'pipewire-volume))
 
 (defun pw-ui--object-name (object)
   (let* ((type (pw-lib-object-type object))
@@ -114,7 +114,7 @@ The indicator is displayed only on graphical terminals."
          (text (format "%4s: %s" id (pw-ui--object-name object)))
          (profile (when (equal type "Device")
                     (pw-lib-current-profile (pw-lib-object-id object))))
-         (face (if (member id default-ids) 'pipewire-default-object-face 'default))
+         (face (if (member id default-ids) 'pipewire-default-object 'default))
          (media-class (pw-lib-object-value object "media.class")))
     (when media-class
       (setq text (format "%s (%s)" text media-class)))
@@ -122,14 +122,14 @@ The indicator is displayed only on graphical terminals."
       (setq text (format "%s: %s" text profile)))
     (let ((volume-p (member type '("Node" "Port"))))
       (when (and volume-p (pw-lib-muted-p object))
-        (setq face `(:inherit (pipewire-muted-face ,face))))
+        (setq face `(:inherit (pipewire-muted ,face))))
       (let ((label (propertize text 'face face)))
         (when volume-p
           (let ((volume (pw-lib-volume object)))
             (when volume
               (setq label (concat label " "
                                   (propertize (number-to-string volume)
-                                              'face 'pipewire-volume-face))))))
+                                              'face 'pipewire-volume))))))
         label))))
 
 (defun pw-ui--insert-line (line object)
