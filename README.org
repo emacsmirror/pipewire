@@ -6,9 +6,10 @@ handle audio devices.  It allows displaying PipeWire devices and
 clients, changing volumes and muting and unmuting of PipeWire sinks
 and sources and setting default sinks and sources.
 
-It is an experimental initial version that may be quite buggy.  It
-works for me but may not work in other environments.  Feel free to use
-it, fix it, fork it.  [[*Contact][Contact me]] if you want to discuss anything.
+pipewire-0 currently relies on the output of the PipeWire command line
+tools.  It works for me but it may not work in other environments.
+Feel free to use it, fix it, fork it.  [[*Contact][Contact me]] if you want to
+discuss anything.
 
 * Usage
 
@@ -48,6 +49,7 @@ Most of the interactive functions can be used anywhere:
 - =pipewire-decrase-volume=
 - =pipewire-set-volume=
 - =pipewire-toggle-muted=
+- =pipewire-toggle-microphone=
 - =pipewire-set-default=
 
 They can be bound to multimedia keys:
@@ -84,11 +86,11 @@ display current volume level of the default audio sink:
 
 * Notes
 
-PipeWire is currently accessed using [[https://docs.pipewire.org/page_man_pw_cli_1.html][pw-cli]] command line utility.  Its
-output is apparently undocumented and changes between versions so this
-is not a reliable way to communicate with PipeWire.  But I don’t know
-about anything better currently.  Nevertheless, it’s easy to replace
-pw-cli with something else in [[file:pw-access.el][pw-access.el]].
+PipeWire is currently accessed using [[https://docs.pipewire.org/page_man_pw_cli_1.html][pw-cli]] command line utility.
+pw-cli output is apparently undocumented and changes between versions
+so this is not a reliable way to communicate with PipeWire.  But I
+don’t know about anything better currently.  Nevertheless, it’s easy
+to replace pw-cli with something else in [[file:pw-access.el][pw-access.el]].
 
 ** Why is it named pipewire-0?
 
