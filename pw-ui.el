@@ -251,6 +251,9 @@ The indicator is displayed only on graphical terminals."
                 (propertize (make-string n-inactive mark)
                             'face `(:background ,pipewire-osd-volume-off-color)))))))
 
+(defun pw-ui--update-muted (object muted-p)
+  (pw-ui--update (format "%s %s" (pw-ui--object-name object) (if muted-p "muted" "unmuted"))))
+
 ;;;###autoload
 (defun pipewire-toggle-muted ()
   "Switch mute status of an audio output or input.
@@ -259,8 +262,16 @@ object.  Otherwise apply it on the default audio sink."
   (interactive)
   (let* ((object (pw-ui--current-object t '("Node" "Port")))
          (muted-p (pw-lib-toggle-mute object)))
-    (pw-ui--update (format "%s %s" (pw-ui--object-name object) (if muted-p "muted" "unmuted")))
+    (pw-ui--update-muted object muted-p)
     (pw-ui--osd-volume object)))
+
+;;;###autoload
+(defun pipewire-toggle-microphone ()
+  "Switch mute status of the default audio input."
+  (interactive)
+  (let* ((object (car (pw-lib-default-capture-ports)))
+         (muted-p (pw-lib-toggle-mute object)))
+    (pw-ui--update-muted object muted-p)))
 
 ;;;###autoload
 (defun pipewire-set-volume (volume &optional object single-p)
