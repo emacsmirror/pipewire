@@ -101,10 +101,10 @@ The indicator is displayed only on graphical terminals."
          (description-properties (if (equal type "Client")
                                      '("application.name")
                                    (let ((prefix (concat (downcase type) ".")))
-                                     (mapcar #'(lambda (suffix) (concat prefix suffix))
+                                     (mapcar (lambda (suffix) (concat prefix suffix))
                                              '("description" "name"))))))
     (or (cl-find-if #'identity
-                    (mapcar #'(lambda (p) (pw-lib-object-value object p))
+                    (mapcar (lambda (p) (pw-lib-object-value object p))
                             description-properties))
         "")))
 
@@ -213,14 +213,14 @@ The indicator is displayed only on graphical terminals."
   (setq pw-ui--osd-timer
         (run-with-timer
          pipewire-osd-timeout nil
-         #'(lambda ()
-             (when pw-ui--osd-frame
-               (ignore-errors (delete-frame pw-ui--osd-frame)))
-             (when pw-ui--osd-buffer
-               (ignore-errors (kill-buffer pw-ui--osd-buffer)))
-             (setq pw-ui--osd-frame nil
-                   pw-ui--osd-timer nil
-                   pw-ui--osd-buffer nil)))))
+         (lambda ()
+           (when pw-ui--osd-frame
+             (ignore-errors (delete-frame pw-ui--osd-frame)))
+           (when pw-ui--osd-buffer
+             (ignore-errors (kill-buffer pw-ui--osd-buffer)))
+           (setq pw-ui--osd-frame nil
+                 pw-ui--osd-timer nil
+                 pw-ui--osd-buffer nil)))))
 
 (defmacro pw-ui--osd (&rest body)
   (declare (indent defun))
@@ -349,10 +349,10 @@ Otherwise ask for the Node to set as the default Node."
   (let ((object (or (pw-ui--current-object nil '("Device" "Node"))
                     (let* ((default-node-ids (mapcar #'cdr (pw-lib-default-nodes)))
                            (nodes (cl-remove-if
-                                   #'(lambda (n) (member (pw-lib-object-id n) default-node-ids))
+                                   (lambda (n) (member (pw-lib-object-id n) default-node-ids))
                                    (pw-lib-objects "Node")))
-                           (node-mapping (mapcar #'(lambda (n) (cons (pw-ui--object-name n)
-                                                                     (pw-lib-object-id n)))
+                           (node-mapping (mapcar (lambda (n) (cons (pw-ui--object-name n)
+                                                                   (pw-lib-object-id n)))
                                                  nodes))
                            (node-name (completing-read "Default node: " node-mapping nil t)))
                       (pw-lib-get-object (cdr (assoc node-name node-mapping)))))))

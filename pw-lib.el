@@ -55,7 +55,7 @@ version, call `pw-lib-refresh' first."
   (let ((objects pw-lib--objects))
     (when type
       (setq objects (cl-remove-if-not
-                     #'(lambda (o) (string= (cdr (assq 'type (cdr o))) type))
+                     (lambda (o) (string= (cdr (assq 'type (cdr o))) type))
                      objects)))
     objects))
 
@@ -148,13 +148,13 @@ Note that PipeWire data is cached, if you need its up-to-date
 version, call `pw-lib-refresh' first."
   (unless pw-lib--defaults
     (let ((defaults (pw-access-defaults pw-lib--accessor))
-          (nodes (mapcar #'(lambda (o)
-                             (cons (pw-lib-object-value o "node.name") (pw-lib-object-id o)))
+          (nodes (mapcar (lambda (o)
+                           (cons (pw-lib-object-value o "node.name") (pw-lib-object-id o)))
                          (pw-lib-objects "Node"))))
       (setq pw-lib--defaults
             (cl-remove-if-not #'cdr
-                              (mapcar #'(lambda (d)
-                                          (cons (car d) (cdr (assoc (cdr d) nodes))))
+                              (mapcar (lambda (d)
+                                        (cons (car d) (cdr (assoc (cdr d) nodes))))
                                       defaults)))))
   pw-lib--defaults)
 
@@ -170,12 +170,12 @@ version, call `pw-lib-refresh' first."
   (or pw-lib--bindings
       (setq pw-lib--bindings
             (apply #'nconc
-                   (mapcar #'(lambda (o)
-                               (let ((o-id (pw-lib-object-id o)))
-                                 (mapcar #'(lambda (p)
-                                             (cons o-id (cdr p)))
-                                         (cl-remove-if-not #'numberp (pw-lib--object-info o)
-                                                           :key #'cdr))))
+                   (mapcar (lambda (o)
+                             (let ((o-id (pw-lib-object-id o)))
+                               (mapcar (lambda (p)
+                                         (cons o-id (cdr p)))
+                                       (cl-remove-if-not #'numberp (pw-lib--object-info o)
+                                                         :key #'cdr))))
                            (pw-lib-objects))))))
 
 (defun pw-lib-children (id &optional type)
@@ -185,10 +185,10 @@ type are returned.
 Note that PipeWire data is cached, if you need its up-to-date
 version, call `pw-lib-refresh' first."
   (let ((children (mapcar #'pw-lib-get-object
-                          (mapcar #'car (cl-remove-if #'(lambda (b) (/= (cdr b) id))
+                          (mapcar #'car (cl-remove-if (lambda (b) (/= (cdr b) id))
                                                       (pw-lib-bindings))))))
     (when type
-      (setq children (cl-remove-if-not #'(lambda (o) (equal (pw-lib-object-type o) type))
+      (setq children (cl-remove-if-not (lambda (o) (equal (pw-lib-object-type o) type))
                                        children)))
     children))
 
@@ -196,9 +196,9 @@ version, call `pw-lib-refresh' first."
   (when node
     (let ((ports (pw-lib-children (pw-lib-object-id node) "Port")))
       (if regexp
-          (cl-delete-if-not #'(lambda (o)
-                                (if-let ((name (pw-lib-object-value o "port.name")))
-                                    (string-match regexp name)))
+          (cl-delete-if-not (lambda (o)
+                              (if-let ((name (pw-lib-object-value o "port.name")))
+                                  (string-match regexp name)))
                             ports)
         ports))))
 
