@@ -113,10 +113,16 @@ returned from `pw-lib-profiles'. "
         (error "Index of %s profile of device %s not found" profile device-id))
       (pw-access-set-profile pw-lib--accessor device-id index))))
 
+(defun pw-lib-parent-node (object)
+  "Return parent node of `object'.
+This is typically used for ports.
+Behavior is undefined if `object' has no parent node."
+  (pw-lib-get-object (pw-lib-object-value object "node.id")))
+
 (defun pw-lib--node (object)
   (if (equal (pw-lib-object-type object) "Node")
       object
-    (pw-lib-get-object (pw-lib-object-value object "node.id"))))
+    (pw-lib-parent-node object)))
 
 (defun pw-lib--node-parameters (object-or-id &optional refresh)
   (let* ((object (if (numberp object-or-id)
