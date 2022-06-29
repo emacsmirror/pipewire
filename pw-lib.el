@@ -2,6 +2,12 @@
 
 ;; Copyright (C) 2022 Milan Zamazal <pdm@zamazal.org>
 
+;; Author: Milan Zamazal <pdm@zamazal.org>
+;; Package-Version: 1
+;; Package-Requires: ((emacs "28.1"))
+;; Keywords: multimedia
+;; URL: https://git.zamazal.org/pdm/pipewire-0
+
 ;; COPYRIGHT NOTICE
 ;;
 ;; This program is free software: you can redistribute it and/or modify
