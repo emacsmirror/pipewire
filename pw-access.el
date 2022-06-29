@@ -253,3 +253,5 @@ Note this interface may not work with all PipeWire versions.")
                 "0" property (format "{ \"name\": \"%s\" }" node-name)))
 
 (provide 'pw-access)
+
+;;; pw-access.el ends here

@@ -404,3 +404,5 @@ applied on some of them or the buffer:
   (pipewire-mode))
 
 (provide 'pw-ui)
+
+;;; pw-ui.el ends here

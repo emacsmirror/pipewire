@@ -314,3 +314,5 @@ otherwise set the current default sink or source."
      (error "Cannot set this kind of object as default."))))
                            
 (provide 'pw-lib)
+
+;;; pw-lib.el ends here
