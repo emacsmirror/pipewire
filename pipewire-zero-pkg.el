@@ -23,7 +23,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(define-package "pipewire-0" "1"
+(define-package "pipewire-zero" "1"
   "Interface to PipeWire."
   '((emacs "28.1")))
 
