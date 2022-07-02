@@ -182,7 +182,7 @@ Note this interface may not work with all PipeWire versions.")
              (push item array)
              (pw-cli--next-line))
            (nreverse array)))))))
-  
+
 (defun pw-cli--parse-properties ()
   (pw-cli--next-line)
   (let ((end (or (save-excursion (re-search-forward "^  Object:" nil t))

@@ -78,7 +78,7 @@ version, call `pw-lib-refresh' first."
 
 (defun pw-lib--object-info (object)
   (cdr object))
-  
+
 (defun pw-lib-object-value (object key &optional default)
   "Return PipeWire OBJECT value identified by KEY.
 KEY is a string corresponding to a PipeWire value identifier.
@@ -276,7 +276,7 @@ rather than using cached data to obtain the result."
      (if node-p
          (cdr (assoc "volume" parameters))
        (nth port-id (cdr (assoc (if monitor-p "monitorVolumes" "channelVolumes") parameters)))))))
-   
+
 (defun pw-lib-set-volume (volume object &optional single-p)
   "Set the volume of PipeWire OBJECT to VOLUME.
 VOLUME must be an integer in the range 0-100.
@@ -318,7 +318,7 @@ otherwise set the current default sink or source."
      (pw-lib--set-default-node object stored-p))
     (_
      (error "Cannot set this kind of object as default."))))
-                           
+
 (provide 'pw-lib)
 
 ;;; pw-lib.el ends here
