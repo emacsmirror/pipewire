@@ -109,7 +109,7 @@ The indicator is displayed only on graphical terminals."
                                      '("application.name")
                                    (let ((prefix (concat (downcase type) ".")))
                                      (mapcar (lambda (suffix) (concat prefix suffix))
-                                             '("description" "name"))))))
+                                             '("nick" "description" "name"))))))
     (or (cl-find-if #'identity
                     (mapcar (lambda (p) (pw-lib-object-value object p))
                             description-properties))
