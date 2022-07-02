@@ -96,6 +96,7 @@ The indicator is displayed only on graphical terminals."
   :group 'pipewire)
 
 (defvar pipewire-buffer "*PipeWire*")
+(defvar pipewire-properties-buffer "*PipWire-properties*")
 
 (defun pw-ui--label (label)
   (propertize (concat label ":") 'face 'pipewire-label))
@@ -381,6 +382,20 @@ Otherwise ask for the Node to set as the default Node."
         (pw-ui--update))
     (error "Nothing to set a profile for here")))
 
+(defun pipewire-properties ()
+  "Display properties of the object at the current point."
+  (interactive)
+  (if-let ((object (pw-ui--current-object)))
+      (progn
+        (pop-to-buffer pipewire-properties-buffer)
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (dolist (p (sort (pw-lib-properties object) #'string-lessp))
+            (insert (format "%s: %s\n" p (pw-lib-object-value object p)))))
+        (goto-char (point-min))
+        (view-mode))
+    (error "No PipeWire object here")))
+
 (defvar pipewire-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "d" 'pipewire-set-default)
@@ -391,6 +406,7 @@ Otherwise ask for the Node to set as the default Node."
     (define-key map "-" 'pipewire-decrease-volume)
     (define-key map "+" 'pipewire-increase-volume-single)
     (define-key map "_" 'pipewire-decrease-volume-single)
+    (define-key map " " 'pipewire-properties)
     map))
 
 (define-derived-mode pipewire-mode special-mode "PW"

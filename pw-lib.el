@@ -86,6 +86,13 @@ If the given KEY doesn't exist in OBJECT, return DEFAULT."
   (or (cdr (assoc key (pw-lib--object-info object)))
       default))
 
+(defun pw-lib-properties (object)
+  "Return names of PipeWire OBJECT properties.
+The returned value is a list of strings.
+The corresponding values can be retrieved using `pw-lib-object-value'
+function."
+  (cl-remove-if-not #'stringp (mapcar #'car (pw-lib--object-info object))))
+
 (defun pw-lib-object-type (object)
   "Return PipeWire type of OBJECT as a string.
 E.g. \"Device\", \"Node\", \"Port\", \"Client\", ..."
