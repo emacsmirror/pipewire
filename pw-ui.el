@@ -297,7 +297,9 @@ object.  Otherwise apply it on the default audio sink."
 VOLUME must be a number in the range 0-100.
 If OBJECT is given (only Nodes and Ports are allowed) or if on a Node
 or Port in a PipeWire buffer, apply it on the given object.
-Otherwise apply it on the default audio sink."
+Otherwise apply it on the default audio sink.
+If SINGLE-P is nil, apply it on all related channels, otherwise on the
+corresponding object only."
   (interactive "nVolume: ")
   (setq volume (max 0 (min 100 volume)))
   (unless object
@@ -317,8 +319,8 @@ Otherwise apply it on the default audio sink."
   "Increase volume of an audio output or input.
 The volume is increased by `pipewire-volume-step'.
 If on a Node or Port in a PipeWire buffer, apply it on all the
-channels of the given object.  Otherwise apply it on the default audio
-sink."
+channels of the given object, unless SINGLE-P is non-nil.
+Otherwise apply it on the default audio sink."
   (interactive)
   (pw-ui--change-volume pipewire-volume-step single-p))
 
@@ -336,8 +338,8 @@ object.  Otherwise apply it on the default audio sink."
   "Decrease volume of an audio output or input.
 The volume is decreased by `pipewire-volume-step'.
 If on a Node or Port in a PipeWire buffer, apply it on all the
-channels of the given object.  Otherwise apply it on the default audio
-sink."
+channels of the given object, unless SINGLE-P is non-nil.
+Otherwise apply it on the default audio sink."
   (interactive)
   (pw-ui--change-volume (- pipewire-volume-step) single-p))
 
