@@ -120,7 +120,7 @@ A list of strings (possibly empty) is returned."
   "Set the profile of the given device.
 DEVICE-ID is the numeric id of the device.
 PROFILE is a string name of the profile, it must be one of the values
-returned from `pw-lib-profiles'. "
+returned from `pw-lib-profiles'."
   (let* ((all-profiles (pw-access-profiles pw-lib--accessor device-id))
          (properties (cl-find profile all-profiles :key #'pw-lib--profile-name :test #'equal)))
     (unless properties
@@ -131,9 +131,9 @@ returned from `pw-lib-profiles'. "
       (pw-access-set-profile pw-lib--accessor device-id index))))
 
 (defun pw-lib-parent-node (object)
-  "Return parent node of `object'.
+  "Return parent node of OBJECT.
 This is typically used for ports.
-Behavior is undefined if `object' has no parent node."
+Behavior is undefined if OBJECT has no parent node."
   (pw-lib-get-object (pw-lib-object-value object "node.id")))
 
 (defun pw-lib--node (object)
@@ -251,7 +251,7 @@ version, call `pw-lib-refresh' first."
     (list node-p parameters monitor-p node-id port-id)))
 
 (defun pw-lib-muted-p (object &optional refresh)
-  "Return whether the given PipeWire object is muted.
+  "Return whether the given PipeWire OBJECT is muted.
 Applicable only to Nodes and Ports.
 If REFRESH is non-nil then retrive fresh information from PipeWire
 rather than using cached data to obtain the result."
@@ -274,7 +274,7 @@ rather than using cached data to obtain the result."
       mute)))
 
 (defun pw-lib-volume (object &optional refresh)
-  "Return volume of the given PipeWire object.
+  "Return volume of the given PipeWire OBJECT.
 The returned value is an integer in the range 0-100.
 Applicable only to Nodes and Ports.
 If REFRESH is non-nil then retrive fresh information from PipeWire
