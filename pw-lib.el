@@ -326,7 +326,7 @@ otherwise set the current default sink or source."
     ("Node"
      (pw-lib--set-default-node object stored-p))
     (_
-     (error "Cannot set this kind of object as default."))))
+     (error "Cannot set this kind of object as default"))))
 
 (provide 'pw-lib)
 
