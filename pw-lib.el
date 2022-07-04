@@ -35,6 +35,8 @@
 (require 'cl-lib)
 (require 'pw-access)
 
+;;; Code:
+
 (defvar pw-lib--accessor (pw-cli-accessor))
 
 (defvar pw-lib--objects '())

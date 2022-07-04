@@ -39,6 +39,8 @@
 
 (require 'eieio)
 
+;;; Code:
+
 (defclass pw-accessor ()
   ()
   :documentation

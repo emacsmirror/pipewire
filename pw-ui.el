@@ -33,6 +33,8 @@
 
 (require 'pw-lib)
 
+;;; Code:
+
 (defgroup pipewire ()
   "PipeWire user interface."
   :group 'multimedia)
