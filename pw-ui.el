@@ -31,9 +31,9 @@
 ;; `pipewire-toggle-muted' functions are also suitable to bind on the
 ;; multimedia keys.
 
-(require 'pw-lib)
-
 ;;; Code:
+
+(require 'pw-lib)
 
 (defgroup pipewire ()
   "PipeWire user interface."

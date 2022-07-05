@@ -37,9 +37,9 @@
 ;; outside this module, except for using a different communication
 ;; class.
 
-(require 'eieio)
-
 ;;; Code:
+
+(require 'eieio)
 
 (defclass pw-accessor ()
   ()

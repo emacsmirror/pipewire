@@ -32,10 +32,10 @@
 ;; pw-lib caches data retrieved from PipeWire and uses the cached
 ;; data.  If   The cache can be invalidated by calling `pw-lib-refresh'.
 
+;;; Code:
+
 (require 'cl-lib)
 (require 'pw-access)
-
-;;; Code:
 
 (defvar pw-lib--accessor (pw-cli-accessor))
 
