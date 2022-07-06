@@ -330,4 +330,8 @@ otherwise set the current default sink or source."
 
 (provide 'pw-lib)
 
+;; Local Variables:
+;; checkdoc-force-docstrings-flag: nil
+;; End:
+
 ;;; pw-lib.el ends here

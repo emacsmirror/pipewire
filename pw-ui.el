@@ -431,4 +431,8 @@ applied on some of them or the buffer:
 
 (provide 'pw-ui)
 
+;; Local Variables:
+;; checkdoc-force-docstrings-flag: nil
+;; End:
+
 ;;; pw-ui.el ends here

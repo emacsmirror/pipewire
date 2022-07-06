@@ -262,4 +262,8 @@ Note this interface may not work with all PipeWire versions.")
 
 (provide 'pw-access)
 
+;; Local Variables:
+;; checkdoc-force-docstrings-flag: nil
+;; End:
+
 ;;; pw-access.el ends here
