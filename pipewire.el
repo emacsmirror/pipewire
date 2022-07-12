@@ -176,7 +176,7 @@ The indicator is displayed only on graphical terminals."
   (let* ((id (pipewire--current-object-id))
          (object (when id (pw-lib-get-object id))))
     (when (and object
-               (not (null allowed-types))
+               allowed-types
                (not (member (pw-lib-object-type object) allowed-types)))
       (setq object nil))
     (when (and use-default-p (not object))
