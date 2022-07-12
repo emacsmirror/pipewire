@@ -1,4 +1,4 @@
-;;; pw-ui.el --- PipeWire user interface  -*- lexical-binding: t -*-
+;;; pipewire.el --- PipeWire user interface  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022 Milan Zamazal <pdm@zamazal.org>
 
@@ -100,13 +100,13 @@ The indicator is displayed only on graphical terminals."
 (defvar pipewire-buffer "*PipeWire*")
 (defvar pipewire-properties-buffer "*PipWire-properties*")
 
-(defun pw-ui--label (label)
+(defun pipewire--label (label)
   (propertize (concat label ":") 'face 'pipewire-label))
 
-(defun pw-ui--object-volume (object)
+(defun pipewire--object-volume (object)
   (propertize (pw-lib-volume object) 'face 'pipewire-volume))
 
-(defun pw-ui--object-name (object)
+(defun pipewire--object-name (object)
   (let* ((type (pw-lib-object-type object))
          (description-properties (if (equal type "Client")
                                      '("application.name")
@@ -118,10 +118,10 @@ The indicator is displayed only on graphical terminals."
                             description-properties))
         "")))
 
-(defun pw-ui--object-label (object default-ids)
+(defun pipewire--object-label (object default-ids)
   (let* ((id (pw-lib-object-id object))
          (type (pw-lib-object-type object))
-         (text (format "%4s: %s" id (pw-ui--object-name object)))
+         (text (format "%4s: %s" id (pipewire--object-name object)))
          (profile (when (equal type "Device")
                     (pw-lib-current-profile (pw-lib-object-id object))))
          (face (if (member id default-ids) 'pipewire-default-object 'default))
@@ -142,7 +142,7 @@ The indicator is displayed only on graphical terminals."
                                               'face 'pipewire-volume))))))
         label))))
 
-(defun pw-ui--insert-line (line object)
+(defun pipewire--insert-line (line object)
   (insert (propertize line 'pw-object-id (pw-lib-object-id object)) "\n"))
 
 (defun pipewire-refresh (&optional _ignore-auto _noconfirm)
@@ -156,24 +156,24 @@ The indicator is displayed only on graphical terminals."
         (default-ids (mapcar #'cdr (pw-lib-default-nodes)))
         (current-line (count-lines (point-min) (min (1+ (point)) (point-max)))))
     (erase-buffer)
-    (insert (pw-ui--label "Devices") "\n")
+    (insert (pipewire--label "Devices") "\n")
     (dolist (device (pw-lib-objects "Device"))
-      (pw-ui--insert-line (pw-ui--object-label device default-ids) device)
+      (pipewire--insert-line (pipewire--object-label device default-ids) device)
       (dolist (node (pw-lib-children (pw-lib-object-id device) "Node"))
-        (pw-ui--insert-line (concat "  " (pw-ui--object-label node default-ids)) node)
+        (pipewire--insert-line (concat "  " (pipewire--object-label node default-ids)) node)
         (dolist (port (pw-lib-children (pw-lib-object-id node) "Port"))
-          (pw-ui--insert-line (concat "    " (pw-ui--object-label port default-ids)) port))))
-    (insert (pw-ui--label "Clients") "\n")
+          (pipewire--insert-line (concat "    " (pipewire--object-label port default-ids)) port))))
+    (insert (pipewire--label "Clients") "\n")
     (dolist (client (pw-lib-objects "Client"))
-      (pw-ui--insert-line (pw-ui--object-label client default-ids) client))
+      (pipewire--insert-line (pipewire--object-label client default-ids) client))
     (goto-char (point-min))
     (forward-line (1- current-line))))
 
-(defun pw-ui--current-object-id ()
+(defun pipewire--current-object-id ()
   (get-text-property (point) 'pw-object-id))
 
-(defun pw-ui--current-object (&optional use-default-p allowed-types)
-  (let* ((id (pw-ui--current-object-id))
+(defun pipewire--current-object (&optional use-default-p allowed-types)
+  (let* ((id (pipewire--current-object-id))
          (object (when id (pw-lib-get-object id))))
     (when (and object
                (not (null allowed-types))
@@ -184,63 +184,63 @@ The indicator is displayed only on graphical terminals."
                        (pw-lib-default-audio-sink))))
     object))
 
-(defvar pw-ui--osd-timer nil)
-(defvar pw-ui--osd-frame nil)
-(defvar pw-ui--osd-buffer nil)
-(defvar pw-ui--osd-buffer-name "*pipewire-osd*")
+(defvar pipewire--osd-timer nil)
+(defvar pipewire--osd-frame nil)
+(defvar pipewire--osd-buffer nil)
+(defvar pipewire--osd-buffer-name "*pipewire-osd*")
 
-(defun pw-ui--osd-display (string)
-  (when pw-ui--osd-timer
-    (cancel-timer pw-ui--osd-timer))
+(defun pipewire--osd-display (string)
+  (when pipewire--osd-timer
+    (cancel-timer pipewire--osd-timer))
   (let ((frame-width (+ 2 (length string))))
-    (when (and pw-ui--osd-frame
-               (not (= frame-width (frame-width pw-ui--osd-frame))))
-      (delete-frame pw-ui--osd-frame)
-      (setq pw-ui--osd-frame nil))
-    (with-current-buffer (setq pw-ui--osd-buffer (get-buffer-create pw-ui--osd-buffer-name))
+    (when (and pipewire--osd-frame
+               (not (= frame-width (frame-width pipewire--osd-frame))))
+      (delete-frame pipewire--osd-frame)
+      (setq pipewire--osd-frame nil))
+    (with-current-buffer (setq pipewire--osd-buffer (get-buffer-create pipewire--osd-buffer-name))
       (erase-buffer)
       (insert " " string)
       (setq mode-line-format nil)
-      (unless pw-ui--osd-frame
-        (setq pw-ui--osd-frame (make-frame `((unsplittable . t)
-                                             ,@pipewire-osd-frame-parameters
-                                             (minibuffer . nil)
-                                             (parent-frame . ,(selected-frame))
-                                             (width . ,(+ 2 (length string)))
-                                             (height . 1)
-                                             (min-width . 1)
-                                             (min-height . 1)
-                                             (left-fringe . 0)
-                                             (right-fringe . 0)
-                                             (no-other-frame . t)
-                                             (undecorated . t)
-                                             (vertical-scroll-bars . nil)
-                                             (horizontal-scroll-bars . nil)
-                                             (menu-bar-lines . 0)
-                                             (tool-bar-lines . 0)
-                                             (tab-bar-lines . 0)
-                                             (cursor-type . nil)))))))
-  (setq pw-ui--osd-timer
+      (unless pipewire--osd-frame
+        (setq pipewire--osd-frame (make-frame `((unsplittable . t)
+                                                ,@pipewire-osd-frame-parameters
+                                                (minibuffer . nil)
+                                                (parent-frame . ,(selected-frame))
+                                                (width . ,(+ 2 (length string)))
+                                                (height . 1)
+                                                (min-width . 1)
+                                                (min-height . 1)
+                                                (left-fringe . 0)
+                                                (right-fringe . 0)
+                                                (no-other-frame . t)
+                                                (undecorated . t)
+                                                (vertical-scroll-bars . nil)
+                                                (horizontal-scroll-bars . nil)
+                                                (menu-bar-lines . 0)
+                                                (tool-bar-lines . 0)
+                                                (tab-bar-lines . 0)
+                                                (cursor-type . nil)))))))
+  (setq pipewire--osd-timer
         (run-with-timer
          pipewire-osd-timeout nil
          (lambda ()
-           (when pw-ui--osd-frame
-             (ignore-errors (delete-frame pw-ui--osd-frame)))
-           (when pw-ui--osd-buffer
-             (ignore-errors (kill-buffer pw-ui--osd-buffer)))
-           (setq pw-ui--osd-frame nil
-                 pw-ui--osd-timer nil
-                 pw-ui--osd-buffer nil)))))
+           (when pipewire--osd-frame
+             (ignore-errors (delete-frame pipewire--osd-frame)))
+           (when pipewire--osd-buffer
+             (ignore-errors (kill-buffer pipewire--osd-buffer)))
+           (setq pipewire--osd-frame nil
+                 pipewire--osd-timer nil
+                 pipewire--osd-buffer nil)))))
 
-(defmacro pw-ui--osd (&rest body)
+(defmacro pipewire--osd (&rest body)
   (declare (debug (body))
            (indent defun))
   (let (($string (gensym)))
     `(when (and window-system pipewire-osd-enable)
        (if-let ((,$string (progn ,@body)))
-           (pw-ui--osd-display ,$string)))))
+           (pipewire--osd-display ,$string)))))
 
-(defun pw-ui--update (&optional message)
+(defun pipewire--update (&optional message)
   (if (get-buffer pipewire-buffer)
       (with-current-buffer pipewire-buffer
         (pipewire-refresh))
@@ -248,9 +248,9 @@ The indicator is displayed only on graphical terminals."
   (when message
     (message message)))
 
-(defun pw-ui--osd-volume (object)
-  (pw-ui--osd
-    (unless (eq (pw-ui--current-object-id) (pw-lib-object-id object))
+(defun pipewire--osd-volume (object)
+  (pipewire--osd
+    (unless (eq (pipewire--current-object-id) (pw-lib-object-id object))
       (let* ((object* (pw-lib-get-object (pw-lib-object-id object))) ; refreshed version
              (volume (pw-lib-volume object*))
              (muted-p (pw-lib-muted-p object*))
@@ -264,13 +264,13 @@ The indicator is displayed only on graphical terminals."
                 (propertize (make-string n-inactive mark)
                             'face `(:background ,pipewire-osd-volume-off-color)))))))
 
-(defun pw-ui--update-muted (object muted-p)
-  (let* ((object-name (pw-ui--object-name object))
+(defun pipewire--update-muted (object muted-p)
+  (let* ((object-name (pipewire--object-name object))
          (parent-node (pw-lib-parent-node object))
          (node-info (if parent-node
-                       (format " in %s" (pw-ui--object-name parent-node))
+                       (format " in %s" (pipewire--object-name parent-node))
                      "")))
-    (pw-ui--update (format "%s%s %s" object-name node-info (if muted-p "muted" "unmuted")))))
+    (pipewire--update (format "%s%s %s" object-name node-info (if muted-p "muted" "unmuted")))))
 
 ;;;###autoload
 (defun pipewire-toggle-muted ()
@@ -278,10 +278,10 @@ The indicator is displayed only on graphical terminals."
 If on a Node or Port in a PipeWire buffer, apply it on the given
 object.  Otherwise apply it on the default audio sink."
   (interactive)
-  (let* ((object (pw-ui--current-object t '("Node" "Port")))
+  (let* ((object (pipewire--current-object t '("Node" "Port")))
          (muted-p (pw-lib-toggle-mute object)))
-    (pw-ui--update-muted object muted-p)
-    (pw-ui--osd-volume object)))
+    (pipewire--update-muted object muted-p)
+    (pipewire--osd-volume object)))
 
 ;;;###autoload
 (defun pipewire-toggle-microphone ()
@@ -289,7 +289,7 @@ object.  Otherwise apply it on the default audio sink."
   (interactive)
   (let* ((object (car (pw-lib-default-capture-ports)))
          (muted-p (pw-lib-toggle-mute object)))
-    (pw-ui--update-muted object muted-p)))
+    (pipewire--update-muted object muted-p)))
 
 ;;;###autoload
 (defun pipewire-set-volume (volume &optional object single-p)
@@ -303,13 +303,13 @@ corresponding object only."
   (interactive "nVolume: ")
   (setq volume (max 0 (min 100 volume)))
   (unless object
-    (setq object (pw-ui--current-object t '("Node" "Port"))))
+    (setq object (pipewire--current-object t '("Node" "Port"))))
   (pw-lib-set-volume volume object single-p)
-  (pw-ui--update (format "Volume %s for %s" volume (pw-ui--object-name object)))
-  (pw-ui--osd-volume object))
+  (pipewire--update (format "Volume %s for %s" volume (pipewire--object-name object)))
+  (pipewire--osd-volume object))
 
-(defun pw-ui--change-volume (step &optional single-p)
-  (let* ((object (pw-ui--current-object t '("Node" "Port")))
+(defun pipewire--change-volume (step &optional single-p)
+  (let* ((object (pipewire--current-object t '("Node" "Port")))
          (volume (pw-lib-volume object))
          (new-volume (max 0 (min 100 (+ volume step)))))
     (pipewire-set-volume new-volume object single-p)))
@@ -322,7 +322,7 @@ If on a Node or Port in a PipeWire buffer, apply it on all the
 channels of the given object, unless SINGLE-P is non-nil.
 Otherwise apply it on the default audio sink."
   (interactive)
-  (pw-ui--change-volume pipewire-volume-step single-p))
+  (pipewire--change-volume pipewire-volume-step single-p))
 
 ;;;###autoload
 (defun pipewire-increase-volume-single ()
@@ -341,7 +341,7 @@ If on a Node or Port in a PipeWire buffer, apply it on all the
 channels of the given object, unless SINGLE-P is non-nil.
 Otherwise apply it on the default audio sink."
   (interactive)
-  (pw-ui--change-volume (- pipewire-volume-step) single-p))
+  (pipewire--change-volume (- pipewire-volume-step) single-p))
 
 ;;;###autoload
 (defun pipewire-decrease-volume-single ()
@@ -359,37 +359,37 @@ If on a Node in a PipeWire buffer, apply it on the given object.
 If on a Device, apply it on all its nodes.
 Otherwise ask for the Node to set as the default Node."
   (interactive)
-  (let ((object (or (pw-ui--current-object nil '("Device" "Node"))
+  (let ((object (or (pipewire--current-object nil '("Device" "Node"))
                     (let* ((default-node-ids (mapcar #'cdr (pw-lib-default-nodes)))
                            (nodes (cl-remove-if
                                    (lambda (n) (member (pw-lib-object-id n) default-node-ids))
                                    (pw-lib-objects "Node")))
-                           (node-mapping (mapcar (lambda (n) (cons (pw-ui--object-name n)
+                           (node-mapping (mapcar (lambda (n) (cons (pipewire--object-name n)
                                                                    (pw-lib-object-id n)))
                                                  nodes))
                            (node-name (completing-read "Default node: " node-mapping nil t)))
                       (pw-lib-get-object (cdr (assoc node-name node-mapping)))))))
     (pw-lib-set-default object nil)
     (pw-lib-set-default object t)
-    (pw-ui--update)))
+    (pipewire--update)))
 
 (defun pipewire-set-profile ()
   "Set profile of the device at the current point."
   (interactive)
-  (if-let ((device (pw-ui--current-object nil '("Device")))
+  (if-let ((device (pipewire--current-object nil '("Device")))
            (device-id (pw-lib-object-id device))
            (profiles (pw-lib-profiles device-id)))
       (progn
         (pw-lib-set-profile device-id (completing-read "Select profile: " profiles nil t))
         ;; Without this, ports of the device may not be displayed on the update:
         (sit-for 0)
-        (pw-ui--update))
+        (pipewire--update))
     (error "Nothing to set a profile for here")))
 
 (defun pipewire-properties ()
   "Display properties of the object at the current point."
   (interactive)
-  (if-let ((object (pw-ui--current-object)))
+  (if-let ((object (pipewire--current-object)))
       (progn
         (pop-to-buffer pipewire-properties-buffer)
         (let ((inhibit-read-only t))
@@ -429,10 +429,10 @@ applied on some of them or the buffer:
   (pipewire-refresh)
   (pipewire-mode))
 
-(provide 'pw-ui)
+(provide 'pipewire)
 
 ;; Local Variables:
 ;; checkdoc-force-docstrings-flag: nil
 ;; End:
 
-;;; pw-ui.el ends here
+;;; pipewire.el ends here
