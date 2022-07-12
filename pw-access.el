@@ -57,7 +57,8 @@ PipeWire and VALUE is the corresponding value.  VALUE is a number for
 object ids, a string otherwise.
 A special entry with `type' symbol as its name contains the PipeWire
 type of the objects, as a string (e.g. \"Device\", \"Node\", \"Port\",
- \"Client\", ...).")
+ \"Client\", ...).
+CLASS is a PipeWire interface, see symbol `pw-accessor'.")
 
 (cl-defgeneric pw-access-properties (class node-id)
   "Return properties of the given node.
@@ -73,7 +74,9 @@ property.  VALUE can be:
   avoid confusion with nil representing invalid or unavailable value).
 - A number for numeric values (ids, integers, floats).
 - A string for string values.
-- A list of elements of any of these types for arrays and structs.")
+- A list of elements of any of these types for arrays and structs.
+
+CLASS is a PipeWire interface, see symbol `pw-accessor'.")
 
 (cl-defgeneric pw-access-set-properties (class node-id properties)
   "Set PROPERTIES of the given node.
@@ -81,7 +84,8 @@ NODE-ID is a numeric PipeWire Node id (other kinds of PipeWire objects
 are not supported in this method).
 PROPERTIES is an association list in the same format as in
 `pw-access-properties'.  It needn't contain all the properties, just
-the properties to be changed.")
+the properties to be changed.
+CLASS is a PipeWire interface, see symbol `pw-accessor'.")
 
 (cl-defgeneric pw-access-current-profile (class device-id)
   "Return current profile of the given device.
@@ -90,7 +94,9 @@ objects are not supported in this method).
 
 The profile is an association list with elements of the form
 \(PROPERTY . VALUE), in the same format as properties in
-`pw-access-properties'.")
+`pw-access-properties'.
+
+CLASS is a PipeWire interface, see symbol `pw-accessor'.")
 
 (cl-defgeneric pw-access-profiles (class device-id)
   "Return available profiles of the given device.
@@ -98,27 +104,32 @@ DEVICE-ID is a numeric PipeWire Device id (other kinds of PipeWire
 objects are not supported in this method).
 
 Return a list of profiles, which are in the same format as in
-`pw-access-current-profile'.")
+`pw-access-current-profile'.
+
+CLASS is a PipeWire interface, see symbol `pw-accessor'.")
 
 (cl-defgeneric pw-access-set-profile (class device-id profile-index)
   "Set the profile of the given device.
 DEVICE-ID is a numeric PipeWire Device id (other kinds of PipeWire
 objects are not supported in this method).
 PROFILE-INDEX is a numeric index of the profile to set, as returned
-from PipeWire.")
+from PipeWire.
+CLASS is a PipeWire interface, see symbol `pw-accessor'.")
 
 (cl-defgeneric pw-access-defaults (class)
   "Return default sinks and sources.
 An association lists is returned.  Each list element is of the form
 \(KEY . NAME) where KEY is a string identifying the given kind of
 default sink or source as reported by PipeWire and NAME is a string
-name of the node assigned to the default.")
+name of the node assigned to the default.
+CLASS is a PipeWire interface, see symbol `pw-accessor'.")
 
 (cl-defgeneric pw-access-set-default (class key node-name)
   "Set default sink or source.
 KEY is a string identifying the given kind of default sink or source
 as reported in `pw-access-defaults' and NODE-NAME is a string name of
-the node that should be assigned to KEY.")
+the node that should be assigned to KEY.
+CLASS is a PipeWire interface, see symbol `pw-accessor'.")
 
 ;; pw-cli interface
 
