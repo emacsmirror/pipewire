@@ -1,10 +1,10 @@
-;;; pipewire-0-pkg.el --- pipewire-0 package definition  -*- lexical-binding: t -*-
+;;; pipewire-zero.el --- pipewire-0 package definition  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022 Milan Zamazal <pdm@zamazal.org>
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Version: 1
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: multimedia
 ;; URL: https://git.zamazal.org/pdm/pipewire-0
 
@@ -23,8 +23,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(define-package "pipewire-zero" "1"
-  "Interface to PipeWire."
-  '((emacs "28.1")))
+(require 'pipewire)
 
-;;; pipewire-0-pkg.el ends here
+;;; pipewire-zero.el ends here
