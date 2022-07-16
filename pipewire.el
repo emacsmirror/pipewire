@@ -294,9 +294,10 @@ object.  Otherwise apply it on the default audio sink."
 (defun pipewire-toggle-microphone ()
   "Switch mute status of the default audio input."
   (interactive)
-  (let* ((object (car (pipewire-lib-default-capture-ports)))
-         (muted-p (pipewire-lib-toggle-mute object)))
-    (pipewire--update-muted object muted-p)))
+  (let ((object (car (pipewire-lib-default-capture-ports))))
+    (if object
+        (pipewire--update-muted object (pipewire-lib-toggle-mute object))
+      (error "No default audio input"))))
 
 ;;;###autoload
 (defun pipewire-set-volume (volume &optional object single-p)
