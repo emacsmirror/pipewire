@@ -1,4 +1,4 @@
-;;; pw-access.el --- PipeWire access  -*- lexical-binding: t -*-
+;;; pipewire-access.el --- PipeWire access  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022 Milan Zamazal <pdm@zamazal.org>
 
@@ -41,13 +41,13 @@
 
 (require 'eieio)
 
-(defclass pw-accessor ()
+(defclass pipewire-accessor ()
   ()
   :documentation
   "Base PipeWire interface class.
 All PipeWire interfaces should derive from this class.")
 
-(cl-defgeneric pw-access-objects (class)
+(cl-defgeneric pipewire-access-objects (class)
   "Return all the objects currently reported by PipeWire.
 It is a list of object data.  Each of the elements has a form
 \(OBJECT-ID . INFO) where OBJECT-ID is a numeric OBJECT-ID as
@@ -58,9 +58,9 @@ object ids, a string otherwise.
 A special entry with `type' symbol as its name contains the PipeWire
 type of the objects, as a string (e.g. \"Device\", \"Node\", \"Port\",
  \"Client\", ...).
-CLASS is a PipeWire interface, see symbol `pw-accessor'.")
+CLASS is a PipeWire interface, see symbol `pipewire-accessor'.")
 
-(cl-defgeneric pw-access-properties (class node-id)
+(cl-defgeneric pipewire-access-properties (class node-id)
   "Return properties of the given node.
 NODE-ID is a numeric PipeWire Node id (other kinds of PipeWire objects
 are not supported in this method).
@@ -76,104 +76,104 @@ property.  VALUE can be:
 - A string for string values.
 - A list of elements of any of these types for arrays and structs.
 
-CLASS is a PipeWire interface, see symbol `pw-accessor'.")
+CLASS is a PipeWire interface, see symbol `pipewire-accessor'.")
 
-(cl-defgeneric pw-access-set-properties (class node-id properties)
+(cl-defgeneric pipewire-access-set-properties (class node-id properties)
   "Set PROPERTIES of the given node.
 NODE-ID is a numeric PipeWire Node id (other kinds of PipeWire objects
 are not supported in this method).
 PROPERTIES is an association list in the same format as in
-`pw-access-properties'.  It needn't contain all the properties, just
+`pipewire-access-properties'.  It needn't contain all the properties, just
 the properties to be changed.
-CLASS is a PipeWire interface, see symbol `pw-accessor'.")
+CLASS is a PipeWire interface, see symbol `pipewire-accessor'.")
 
-(cl-defgeneric pw-access-current-profile (class device-id)
+(cl-defgeneric pipewire-access-current-profile (class device-id)
   "Return current profile of the given device.
 DEVICE-ID is a numeric PipeWire Device id (other kinds of PipeWire
 objects are not supported in this method).
 
 The profile is an association list with elements of the form
 \(PROPERTY . VALUE), in the same format as properties in
-`pw-access-properties'.
+`pipewire-access-properties'.
 
-CLASS is a PipeWire interface, see symbol `pw-accessor'.")
+CLASS is a PipeWire interface, see symbol `pipewire-accessor'.")
 
-(cl-defgeneric pw-access-profiles (class device-id)
+(cl-defgeneric pipewire-access-profiles (class device-id)
   "Return available profiles of the given device.
 DEVICE-ID is a numeric PipeWire Device id (other kinds of PipeWire
 objects are not supported in this method).
 
 Return a list of profiles, which are in the same format as in
-`pw-access-current-profile'.
+`pipewire-access-current-profile'.
 
-CLASS is a PipeWire interface, see symbol `pw-accessor'.")
+CLASS is a PipeWire interface, see symbol `pipewire-accessor'.")
 
-(cl-defgeneric pw-access-set-profile (class device-id profile-index)
+(cl-defgeneric pipewire-access-set-profile (class device-id profile-index)
   "Set the profile of the given device.
 DEVICE-ID is a numeric PipeWire Device id (other kinds of PipeWire
 objects are not supported in this method).
 PROFILE-INDEX is a numeric index of the profile to set, as returned
 from PipeWire.
-CLASS is a PipeWire interface, see symbol `pw-accessor'.")
+CLASS is a PipeWire interface, see symbol `pipewire-accessor'.")
 
-(cl-defgeneric pw-access-defaults (class)
+(cl-defgeneric pipewire-access-defaults (class)
   "Return default sinks and sources.
 An association lists is returned.  Each list element is of the form
 \(KEY . NAME) where KEY is a string identifying the given kind of
 default sink or source as reported by PipeWire and NAME is a string
 name of the node assigned to the default.
-CLASS is a PipeWire interface, see symbol `pw-accessor'.")
+CLASS is a PipeWire interface, see symbol `pipewire-accessor'.")
 
-(cl-defgeneric pw-access-set-default (class key node-name)
+(cl-defgeneric pipewire-access-set-default (class key node-name)
   "Set default sink or source.
 KEY is a string identifying the given kind of default sink or source
-as reported in `pw-access-defaults' and NODE-NAME is a string name of
+as reported in `pipewire-access-defaults' and NODE-NAME is a string name of
 the node that should be assigned to KEY.
-CLASS is a PipeWire interface, see symbol `pw-accessor'.")
+CLASS is a PipeWire interface, see symbol `pipewire-accessor'.")
 
 ;; pw-cli interface
 
-(defvar pw-cli-command "pw-cli"
+(defvar pipewire-cli-command "pw-cli"
   "Command to invoke pw-cli.")
 
-(defvar pw-cli-metadata-command "pw-metadata"
+(defvar pipewire-cli-metadata-command "pw-metadata"
   "Command to invoke pw-metadata.")
 
-(defclass pw-cli-accessor (pw-accessor)
+(defclass pipewire-cli-accessor (pipewire-accessor)
   ()
   :documentation
   "Command line based interface to PipeWire.
 Note this interface may not work with all PipeWire versions.")
 
-(defun pw-cli--command (command args)
+(defun pipewire-cli--command (command args)
   (apply #'call-process command nil t nil args)
   (goto-char (point-min)))
 
-(defun pw-cli--next-line ()
+(defun pipewire-cli--next-line ()
   (goto-char (line-beginning-position 2)))
 
-(defun pw-cli--parse-list ()
+(defun pipewire-cli--parse-list ()
   (let ((objects '()))
     (while (re-search-forward "^[\t]id \\([0-9]+\\), type PipeWire:Interface:\\(.*\\)/.*$" nil t)
       (let ((id (string-to-number (match-string 1)))
             (properties `((type . ,(match-string 2)))))
-        (pw-cli--next-line)
+        (pipewire-cli--next-line)
         (while (looking-at "^ [\t][\t]\\([a-z.]+\\) = \"\\(.*\\)\"")
           (let ((property (match-string 1))
                 (value  (match-string 2)))
             (when (string-suffix-p ".id" property)
               (setq value (string-to-number value)))
             (push (cons property value) properties))
-          (pw-cli--next-line))
+          (pipewire-cli--next-line))
         (push (cons id properties) objects)))
     (nreverse objects)))
 
-(cl-defmethod pw-access-objects ((_class pw-cli-accessor))
+(cl-defmethod pipewire-access-objects ((_class pipewire-cli-accessor))
   (with-temp-buffer
-    (pw-cli--command pw-cli-command '("list-objects"))
-    (pw-cli--parse-list)))
+    (pipewire-cli--command pipewire-cli-command '("list-objects"))
+    (pipewire-cli--parse-list)))
 
-(defun pw-cli--read-property (&optional nesting)
+(defun pipewire-cli--read-property (&optional nesting)
   (unless nesting
     (setq nesting 0))
   (when (looking-at (concat (make-string (+ 6 (* 2 nesting)) ? )
@@ -190,71 +190,71 @@ Note this interface may not work with all PipeWire versions.")
         ((or "Array:" "Struct:")
          (let ((array '())
                item)
-           (pw-cli--next-line)
-           (while (setq item (pw-cli--read-property (1+ nesting)))
+           (pipewire-cli--next-line)
+           (while (setq item (pipewire-cli--read-property (1+ nesting)))
              (push item array)
-             (pw-cli--next-line))
+             (pipewire-cli--next-line))
            (nreverse array)))))))
 
-(defun pw-cli--parse-properties ()
-  (pw-cli--next-line)
+(defun pipewire-cli--parse-properties ()
+  (pipewire-cli--next-line)
   (let ((end (or (save-excursion (re-search-forward "^  Object:" nil t))
                  (point-max)))
         (properties '()))
     (while (and (< (point) end)
                 (re-search-forward "^    Prop: key \\([A-Za-z:]+\\)" end t))
-      (pw-cli--next-line)
+      (pipewire-cli--next-line)
       (let ((property (car (last (split-string (match-string 1) ":"))))
-            (value (pw-cli--read-property)))
+            (value (pipewire-cli--read-property)))
         (when value
           (push (cons property value) properties))))
     (goto-char end)
     properties))
 
-(cl-defmethod pw-access-properties ((_class pw-cli-accessor) node-id)
+(cl-defmethod pipewire-access-properties ((_class pipewire-cli-accessor) node-id)
   (with-temp-buffer
-    (pw-cli--command pw-cli-command `("enum-params" ,(number-to-string node-id) "Props"))
-    (pw-cli--parse-properties)))
+    (pipewire-cli--command pipewire-cli-command `("enum-params" ,(number-to-string node-id) "Props"))
+    (pipewire-cli--parse-properties)))
 
-(defun pw-cli--format-property-value (value)
+(defun pipewire-cli--format-property-value (value)
   (cond
    ((consp value)
-    (concat "[ " (mapconcat #'pw-cli--format-property-value value ", ") " ]"))
+    (concat "[ " (mapconcat #'pipewire-cli--format-property-value value ", ") " ]"))
    ((numberp value)
     (number-to-string value))
    (t
     value)))
 
-(defun pw-cli--format-property (property)
-  (format "%s: %s" (car property) (pw-cli--format-property-value (cdr property))))
+(defun pipewire-cli--format-property (property)
+  (format "%s: %s" (car property) (pipewire-cli--format-property-value (cdr property))))
 
-(defun pw-cli--format-properties (properties)
-  (concat "{ " (mapconcat #'pw-cli--format-property properties ", ") " }"))
+(defun pipewire-cli--format-properties (properties)
+  (concat "{ " (mapconcat #'pipewire-cli--format-property properties ", ") " }"))
 
-(defun pw-cli--set-parameter (object-id parameter value)
-  (let* ((formatted (pw-cli--format-properties value)))
-    (call-process pw-cli-command nil pw-cli-command nil
+(defun pipewire-cli--set-parameter (object-id parameter value)
+  (let* ((formatted (pipewire-cli--format-properties value)))
+    (call-process pipewire-cli-command nil pipewire-cli-command nil
                   "set-param" (number-to-string object-id) parameter formatted)))
 
-(cl-defmethod pw-access-set-properties ((_class pw-cli-accessor) node-id properties)
-  (pw-cli--set-parameter node-id "Props" properties))
+(cl-defmethod pipewire-access-set-properties ((_class pipewire-cli-accessor) node-id properties)
+  (pipewire-cli--set-parameter node-id "Props" properties))
 
-(cl-defmethod pw-access-current-profile ((_class pw-cli-accessor) device-id)
+(cl-defmethod pipewire-access-current-profile ((_class pipewire-cli-accessor) device-id)
   (with-temp-buffer
-    (pw-cli--command pw-cli-command `("enum-params" ,(number-to-string device-id) "Profile"))
-    (pw-cli--parse-properties)))
+    (pipewire-cli--command pipewire-cli-command `("enum-params" ,(number-to-string device-id) "Profile"))
+    (pipewire-cli--parse-properties)))
 
-(cl-defmethod pw-access-profiles ((_class pw-cli-accessor) device-id)
+(cl-defmethod pipewire-access-profiles ((_class pipewire-cli-accessor) device-id)
   (with-temp-buffer
-    (pw-cli--command pw-cli-command `("enum-params" ,(number-to-string device-id) "EnumProfile"))
-    (cl-loop for profile = (pw-cli--parse-properties) then (pw-cli--parse-properties)
+    (pipewire-cli--command pipewire-cli-command `("enum-params" ,(number-to-string device-id) "EnumProfile"))
+    (cl-loop for profile = (pipewire-cli--parse-properties) then (pipewire-cli--parse-properties)
              while profile
              collect profile)))
 
-(cl-defmethod pw-access-set-profile ((_class pw-cli-accessor) device-id profile-index)
-  (pw-cli--set-parameter device-id "Profile" `(("index" . ,profile-index) ("save" . "true"))))
+(cl-defmethod pipewire-access-set-profile ((_class pipewire-cli-accessor) device-id profile-index)
+  (pipewire-cli--set-parameter device-id "Profile" `(("index" . ,profile-index) ("save" . "true"))))
 
-(defun pw-cli--parse-metadata ()
+(defun pipewire-cli--parse-metadata ()
   (let ((metadata '()))
     (while (re-search-forward
             "key:'\\([a-z.]+\\)'.*\\(value\\|\"name\"\\): ?['\"]\\([^'\"]+\\)['\"]"
@@ -262,19 +262,19 @@ Note this interface may not work with all PipeWire versions.")
       (push (cons (match-string 1) (match-string 3)) metadata))
     metadata))
 
-(cl-defmethod pw-access-defaults ((_class pw-cli-accessor))
+(cl-defmethod pipewire-access-defaults ((_class pipewire-cli-accessor))
   (with-temp-buffer
-    (pw-cli--command pw-cli-metadata-command '("0"))
-    (pw-cli--parse-metadata)))
+    (pipewire-cli--command pipewire-cli-metadata-command '("0"))
+    (pipewire-cli--parse-metadata)))
 
-(cl-defmethod pw-access-set-default ((_class pw-cli-accessor) property node-name)
-  (call-process pw-cli-metadata-command nil pw-cli-metadata-command nil
+(cl-defmethod pipewire-access-set-default ((_class pipewire-cli-accessor) property node-name)
+  (call-process pipewire-cli-metadata-command nil pipewire-cli-metadata-command nil
                 "0" property (format "{ \"name\": \"%s\" }" node-name)))
 
-(provide 'pw-access)
+(provide 'pipewire-access)
 
 ;; Local Variables:
 ;; checkdoc-force-docstrings-flag: nil
 ;; End:
 
-;;; pw-access.el ends here
+;;; pipewire-access.el ends here

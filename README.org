@@ -22,7 +22,7 @@ To install pipewire-0, put the *.el files to a site-lisp directory and
 add the following line to your Emacs configuration:
 
    #+begin_src elisp
-(require ’pw-ui)
+(require ’pipewire)
    #+end_src
 
 Or if you use [[https://github.com/radian-software/straight.el][straight.el]], you can install pipewire-0 as follows:
@@ -68,20 +68,20 @@ They can be bound to multimedia keys:
 
 pipewire-0 consists of the following source files:
 
-- [[file:pw-lib.el][pw-lib.el]] :: PipeWire library to be used in Elisp programs.
-- [[file:pw-access.el][pw-access.el]] :: PipeWire communication interface, not supposed to be
-  used outside =pw-lib=.
-- [[file:pw-ui.el][pw-ui.el]] :: User commands and interface.
+- [[file:pipewire-lib.el][pipewire-lib.el]] :: PipeWire library to be used in Elisp programs.
+- [[file:pipewire-access.el][pipewire-access.el]] :: PipeWire communication interface, not supposed to be
+  used outside =pipewire-lib=.
+- [[file:pipewire.el][pipewire.el]] :: User commands and interface.
 
-Look into [[file:pw-lib.el][pw-lib.el]] to see what public =pw-lib-*= functions are
+Look into [[file:pipewire-lib.el][pipewire-lib.el]] to see what public =pipewire-lib-*= functions are
 available there.  For example, the following snippet can be used to
 display current volume level of the default audio sink:
 
    #+begin_src elisp
-(let ((object (pw-lib-default-audio-sink)))
+(let ((object (pipewire-lib-default-audio-sink)))
   (format "%s%s"
-          (pw-lib-volume object t)
-          (if (pw-lib-muted-p object) "(M)" "")))
+          (pipewire-lib-volume object t)
+          (if (pipewire-lib-muted-p object) "(M)" "")))
    #+end_src
 
 * Notes
@@ -90,7 +90,7 @@ PipeWire is currently accessed using [[https://docs.pipewire.org/page_man_pw_cli
 pw-cli output is apparently undocumented and changes between versions
 so this is not a reliable way to communicate with PipeWire.  But I
 don’t know about anything better currently.  Nevertheless, it’s easy
-to replace pw-cli with something else in [[file:pw-access.el][pw-access.el]].
+to replace pw-cli with something else in [[file:pipewire-access.el][pipewire-access.el]].
 
 ** Why is it named pipewire-0?
 

@@ -4,7 +4,7 @@
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Version: 1
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: multimedia
 ;; URL: https://git.zamazal.org/pdm/pipewire-0
 
@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 ;;
-;; PipeWire user interface based on pw-lib.
+;; PipeWire user interface based on pipewire-lib.
 ;; An interactive buffer can be displayed using `M-x pipewire'.
 ;; `pipewire-increase-volume', `pipewire-decrease-volume' and
 ;; `pipewire-toggle-muted' functions are also suitable to bind on the
@@ -33,7 +33,7 @@
 
 ;;; Code:
 
-(require 'pw-lib)
+(require 'pipewire-lib)
 
 (defgroup pipewire ()
   "PipeWire user interface."
@@ -104,38 +104,38 @@ The indicator is displayed only on graphical terminals."
   (propertize (concat label ":") 'face 'pipewire-label))
 
 (defun pipewire--object-volume (object)
-  (propertize (pw-lib-volume object) 'face 'pipewire-volume))
+  (propertize (pipewire-lib-volume object) 'face 'pipewire-volume))
 
 (defun pipewire--object-name (object)
-  (let* ((type (pw-lib-object-type object))
+  (let* ((type (pipewire-lib-object-type object))
          (description-properties (if (equal type "Client")
                                      '("application.name")
                                    (let ((prefix (concat (downcase type) ".")))
                                      (mapcar (lambda (suffix) (concat prefix suffix))
                                              '("nick" "description" "name"))))))
     (or (cl-find-if #'identity
-                    (mapcar (lambda (p) (pw-lib-object-value object p))
+                    (mapcar (lambda (p) (pipewire-lib-object-value object p))
                             description-properties))
         "")))
 
 (defun pipewire--object-label (object default-ids)
-  (let* ((id (pw-lib-object-id object))
-         (type (pw-lib-object-type object))
+  (let* ((id (pipewire-lib-object-id object))
+         (type (pipewire-lib-object-type object))
          (text (format "%4s: %s" id (pipewire--object-name object)))
          (profile (when (equal type "Device")
-                    (pw-lib-current-profile (pw-lib-object-id object))))
+                    (pipewire-lib-current-profile (pipewire-lib-object-id object))))
          (face (if (member id default-ids) 'pipewire-default-object 'default))
-         (media-class (pw-lib-object-value object "media.class")))
+         (media-class (pipewire-lib-object-value object "media.class")))
     (when media-class
       (setq text (format "%s (%s)" text media-class)))
     (when profile
       (setq text (format "%s: %s" text profile)))
     (let ((volume-p (member type '("Node" "Port"))))
-      (when (and volume-p (pw-lib-muted-p object))
+      (when (and volume-p (pipewire-lib-muted-p object))
         (setq face `(:inherit (pipewire-muted ,face))))
       (let ((label (propertize text 'face face)))
         (when volume-p
-          (let ((volume (pw-lib-volume object)))
+          (let ((volume (pipewire-lib-volume object)))
             (when volume
               (setq label (concat label " "
                                   (propertize (number-to-string volume)
@@ -143,7 +143,7 @@ The indicator is displayed only on graphical terminals."
         label))))
 
 (defun pipewire--insert-line (line object)
-  (insert (propertize line 'pw-object-id (pw-lib-object-id object)) "\n"))
+  (insert (propertize line 'pipewire-object-id (pipewire-lib-object-id object)) "\n"))
 
 (defun pipewire-refresh (&optional _ignore-auto _noconfirm)
   "Refresh PipeWire buffer."
@@ -151,37 +151,37 @@ The indicator is displayed only on graphical terminals."
   (when (and (not (eq major-mode 'pipewire-mode))
              (not (equal (buffer-name) pipewire-buffer)))
     (error "Not in a PipeWire buffer"))
-  (pw-lib-refresh)
+  (pipewire-lib-refresh)
   (let ((inhibit-read-only t)
-        (default-ids (mapcar #'cdr (pw-lib-default-nodes)))
+        (default-ids (mapcar #'cdr (pipewire-lib-default-nodes)))
         (current-line (count-lines (point-min) (min (1+ (point)) (point-max)))))
     (erase-buffer)
     (insert (pipewire--label "Devices") "\n")
-    (dolist (device (pw-lib-objects "Device"))
+    (dolist (device (pipewire-lib-objects "Device"))
       (pipewire--insert-line (pipewire--object-label device default-ids) device)
-      (dolist (node (pw-lib-children (pw-lib-object-id device) "Node"))
+      (dolist (node (pipewire-lib-children (pipewire-lib-object-id device) "Node"))
         (pipewire--insert-line (concat "  " (pipewire--object-label node default-ids)) node)
-        (dolist (port (pw-lib-children (pw-lib-object-id node) "Port"))
+        (dolist (port (pipewire-lib-children (pipewire-lib-object-id node) "Port"))
           (pipewire--insert-line (concat "    " (pipewire--object-label port default-ids)) port))))
     (insert (pipewire--label "Clients") "\n")
-    (dolist (client (pw-lib-objects "Client"))
+    (dolist (client (pipewire-lib-objects "Client"))
       (pipewire--insert-line (pipewire--object-label client default-ids) client))
     (goto-char (point-min))
     (forward-line (1- current-line))))
 
 (defun pipewire--current-object-id ()
-  (get-text-property (point) 'pw-object-id))
+  (get-text-property (point) 'pipewire-object-id))
 
 (defun pipewire--current-object (&optional use-default-p allowed-types)
   (let* ((id (pipewire--current-object-id))
-         (object (when id (pw-lib-get-object id))))
+         (object (when id (pipewire-lib-get-object id))))
     (when (and object
                allowed-types
-               (not (member (pw-lib-object-type object) allowed-types)))
+               (not (member (pipewire-lib-object-type object) allowed-types)))
       (setq object nil))
     (when (and use-default-p (not object))
-      (setq object (or (car (pw-lib-default-playback-ports))
-                       (pw-lib-default-audio-sink))))
+      (setq object (or (car (pipewire-lib-default-playback-ports))
+                       (pipewire-lib-default-audio-sink))))
     object))
 
 (defvar pipewire--osd-timer nil)
@@ -244,16 +244,16 @@ The indicator is displayed only on graphical terminals."
   (if (get-buffer pipewire-buffer)
       (with-current-buffer pipewire-buffer
         (pipewire-refresh))
-    (pw-lib-refresh))
+    (pipewire-lib-refresh))
   (when message
     (message message)))
 
 (defun pipewire--osd-volume (object)
   (pipewire--osd
-    (unless (eq (pipewire--current-object-id) (pw-lib-object-id object))
-      (let* ((object* (pw-lib-get-object (pw-lib-object-id object))) ; refreshed version
-             (volume (pw-lib-volume object*))
-             (muted-p (pw-lib-muted-p object*))
+    (unless (eq (pipewire--current-object-id) (pipewire-lib-object-id object))
+      (let* ((object* (pipewire-lib-get-object (pipewire-lib-object-id object))) ; refreshed version
+             (volume (pipewire-lib-volume object*))
+             (muted-p (pipewire-lib-muted-p object*))
              (step (/ 100.0 pipewire-osd-width))
              (mark (if muted-p ?- ?|))
              (n-active (round (/ volume step)))
@@ -266,7 +266,7 @@ The indicator is displayed only on graphical terminals."
 
 (defun pipewire--update-muted (object muted-p)
   (let* ((object-name (pipewire--object-name object))
-         (parent-node (pw-lib-parent-node object))
+         (parent-node (pipewire-lib-parent-node object))
          (node-info (if parent-node
                        (format " in %s" (pipewire--object-name parent-node))
                      "")))
@@ -279,7 +279,7 @@ If on a Node or Port in a PipeWire buffer, apply it on the given
 object.  Otherwise apply it on the default audio sink."
   (interactive)
   (let* ((object (pipewire--current-object t '("Node" "Port")))
-         (muted-p (pw-lib-toggle-mute object)))
+         (muted-p (pipewire-lib-toggle-mute object)))
     (pipewire--update-muted object muted-p)
     (pipewire--osd-volume object)))
 
@@ -287,8 +287,8 @@ object.  Otherwise apply it on the default audio sink."
 (defun pipewire-toggle-microphone ()
   "Switch mute status of the default audio input."
   (interactive)
-  (let* ((object (car (pw-lib-default-capture-ports)))
-         (muted-p (pw-lib-toggle-mute object)))
+  (let* ((object (car (pipewire-lib-default-capture-ports)))
+         (muted-p (pipewire-lib-toggle-mute object)))
     (pipewire--update-muted object muted-p)))
 
 ;;;###autoload
@@ -304,13 +304,13 @@ corresponding object only."
   (setq volume (max 0 (min 100 volume)))
   (unless object
     (setq object (pipewire--current-object t '("Node" "Port"))))
-  (pw-lib-set-volume volume object single-p)
+  (pipewire-lib-set-volume volume object single-p)
   (pipewire--update (format "Volume %s for %s" volume (pipewire--object-name object)))
   (pipewire--osd-volume object))
 
 (defun pipewire--change-volume (step &optional single-p)
   (let* ((object (pipewire--current-object t '("Node" "Port")))
-         (volume (pw-lib-volume object))
+         (volume (pipewire-lib-volume object))
          (new-volume (max 0 (min 100 (+ volume step)))))
     (pipewire-set-volume new-volume object single-p)))
 
@@ -360,27 +360,27 @@ If on a Device, apply it on all its nodes.
 Otherwise ask for the Node to set as the default Node."
   (interactive)
   (let ((object (or (pipewire--current-object nil '("Device" "Node"))
-                    (let* ((default-node-ids (mapcar #'cdr (pw-lib-default-nodes)))
+                    (let* ((default-node-ids (mapcar #'cdr (pipewire-lib-default-nodes)))
                            (nodes (cl-remove-if
-                                   (lambda (n) (member (pw-lib-object-id n) default-node-ids))
-                                   (pw-lib-objects "Node")))
+                                   (lambda (n) (member (pipewire-lib-object-id n) default-node-ids))
+                                   (pipewire-lib-objects "Node")))
                            (node-mapping (mapcar (lambda (n) (cons (pipewire--object-name n)
-                                                                   (pw-lib-object-id n)))
+                                                                   (pipewire-lib-object-id n)))
                                                  nodes))
                            (node-name (completing-read "Default node: " node-mapping nil t)))
-                      (pw-lib-get-object (cdr (assoc node-name node-mapping)))))))
-    (pw-lib-set-default object nil)
-    (pw-lib-set-default object t)
+                      (pipewire-lib-get-object (cdr (assoc node-name node-mapping)))))))
+    (pipewire-lib-set-default object nil)
+    (pipewire-lib-set-default object t)
     (pipewire--update)))
 
 (defun pipewire-set-profile ()
   "Set profile of the device at the current point."
   (interactive)
   (if-let ((device (pipewire--current-object nil '("Device")))
-           (device-id (pw-lib-object-id device))
-           (profiles (pw-lib-profiles device-id)))
+           (device-id (pipewire-lib-object-id device))
+           (profiles (pipewire-lib-profiles device-id)))
       (progn
-        (pw-lib-set-profile device-id (completing-read "Select profile: " profiles nil t))
+        (pipewire-lib-set-profile device-id (completing-read "Select profile: " profiles nil t))
         ;; Without this, ports of the device may not be displayed on the update:
         (sit-for 0)
         (pipewire--update))
@@ -394,8 +394,8 @@ Otherwise ask for the Node to set as the default Node."
         (pop-to-buffer pipewire-properties-buffer)
         (let ((inhibit-read-only t))
           (erase-buffer)
-          (dolist (p (sort (pw-lib-properties object) #'string-lessp))
-            (insert (format "%s: %s\n" p (pw-lib-object-value object p)))))
+          (dolist (p (sort (pipewire-lib-properties object) #'string-lessp))
+            (insert (format "%s: %s\n" p (pipewire-lib-object-value object p)))))
         (goto-char (point-min))
         (view-mode))
     (error "No PipeWire object here")))
