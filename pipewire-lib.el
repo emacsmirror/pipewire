@@ -30,7 +30,7 @@
 ;; functions to work with them.
 ;;
 ;; pipewire-lib caches data retrieved from PipeWire and uses the cached
-;; data.  If   The cache can be invalidated by calling `pipewire-lib-refresh'.
+;; data.  The cache can be invalidated by calling `pipewire-lib-refresh'.
 
 ;;; Code:
 
