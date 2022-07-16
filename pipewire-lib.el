@@ -36,6 +36,7 @@
 
 (require 'cl-lib)
 (require 'pipewire-access)
+(require 'pipewire-cli)
 
 (defvar pipewire-lib--accessor (pipewire-cli-accessor))
 
