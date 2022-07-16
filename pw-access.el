@@ -134,15 +134,15 @@ CLASS is a PipeWire interface, see symbol `pw-accessor'.")
 ;; pw-cli interface
 
 (defvar pw-cli-command "pw-cli"
-  "pw-cli command to use.")
+  "Command to invoke pw-cli.")
 
 (defvar pw-cli-metadata-command "pw-metadata"
-  "pw-metadata command to use.")
+  "Command to invoke pw-metadata.")
 
 (defclass pw-cli-accessor (pw-accessor)
   ()
   :documentation
-  "pw-cli based interface to PipeWire.
+  "Command line based interface to PipeWire.
 Note this interface may not work with all PipeWire versions.")
 
 (defun pw-cli--command (command args)
