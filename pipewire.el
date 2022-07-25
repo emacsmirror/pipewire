@@ -157,7 +157,7 @@ The indicator is displayed only on graphical terminals."
   (interactive)
   (when (and (not (eq major-mode 'pipewire-mode))
              (not (equal (buffer-name) pipewire-buffer)))
-    (error "Not in a PipeWire buffer"))
+    (user-error "Not in a PipeWire buffer"))
   (pipewire-lib-refresh)
   (let ((inhibit-read-only t)
         (default-ids (mapcar #'cdr (pipewire-lib-default-nodes)))
@@ -297,7 +297,7 @@ object.  Otherwise apply it on the default audio sink."
   (let ((object (car (pipewire-lib-default-capture-ports))))
     (if object
         (pipewire--update-muted object (pipewire-lib-toggle-mute object))
-      (error "No default audio input"))))
+      (user-error "No default audio input"))))
 
 ;;;###autoload
 (defun pipewire-set-volume (volume &optional object single-p)
@@ -392,7 +392,7 @@ Otherwise ask for the Node to set as the default Node."
         ;; Without this, ports of the device may not be displayed on the update:
         (sit-for 0)
         (pipewire--update))
-    (error "Nothing to set a profile for here")))
+    (user-error "Nothing to set a profile for here")))
 
 (defun pipewire-properties ()
   "Display properties of the object at the current point."
@@ -406,7 +406,7 @@ Otherwise ask for the Node to set as the default Node."
             (insert (format "%s: %s\n" p (pipewire-lib-object-value object p)))))
         (goto-char (point-min))
         (view-mode))
-    (error "No PipeWire object here")))
+    (user-error "No PipeWire object here")))
 
 (defvar pipewire-mode-map
   (let ((map (make-sparse-keymap)))
