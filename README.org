@@ -18,20 +18,22 @@ discuss anything.
 pipewire-0 currently requires presence of PipeWire command line tools,
 namely [[https://docs.pipewire.org/page_man_pw_cli_1.html][pw-cli]] and [[https://docs.pipewire.org/page_man_pw_metadata_1.html][pw-metadata]].
 
-To install pipewire-0, put the *.el files to a site-lisp directory and
-add the following line to your Emacs configuration:
-
-   #+begin_src elisp
-(require ’pipewire)
-   #+end_src
-
-Or if you use [[https://github.com/radian-software/straight.el][straight.el]], you can install pipewire-0 as follows:
+You can install pipewire-0 from [[https://melpa.org/#/pipewire][MELPA]].  If you use [[https://github.com/radian-software/straight.el][straight.el]] and
+prefer using source repos directly, you can install pipewire-0 as
+follows:
 
    #+begin_src elisp
 (straight-use-package
  '(pipewire-0 :type git
               :repo "https://git.zamazal.org/pdm/pipewire-0"
               :local-repo "pipewire-0"))
+   #+end_src
+
+To install pipewire-0 manually, put the *.el files to a site-lisp
+directory and add the following line to your Emacs configuration:
+
+   #+begin_src elisp
+(require ’pipewire)
    #+end_src
 
 ** User interface
